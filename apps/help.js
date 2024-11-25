@@ -14,7 +14,7 @@ export class Help extends plugin {
             priority: 5000,
             rule: [
                 {
-                    reg: '^#?(课表|class)帮助$',
+                    reg: '^#?(课表|class)(帮助|help)$',
                     fnc: 'help'
                 }
             ]
@@ -26,10 +26,8 @@ export class Help extends plugin {
             const render = new Render()
             const imagePath = await render.help(helpCfg, helpList)
             
-            // 发送图片
             if(fs.existsSync(imagePath)) {
-                await e.reply(segment.image(imagePath))
-                // 发送后删除临时文件
+                await e.reply(segment.image(`file:///${imagePath}`))
                 fs.unlinkSync(imagePath)
             } else {
                 throw new Error('生成帮助图片失败')

@@ -10,22 +10,22 @@ const _path = process.cwd()
 export class Class extends plugin {
   constructor () {
     super({
-      name: 'Class-Schedule',
-      dsc: '课表管理插件',
+      name: 'Class-课表',
+      dsc: '课表插件',
       event: 'message',
       priority: 5000,
       rule: [
         {
+          reg: '^#?课表$',
+          fnc: 'viewSchedule'
+        },
+        {
+          reg: '^#?本周课表$',
+          fnc: 'thisWeekSchedule'
+        },
+        {
           reg: /^#?(添加|新增)课程\s*(.*)$/,
           fnc: 'addSchedule'
-        },
-        {
-          reg: /^#?课表\s*(.*)$/,
-          fnc: 'viewSchedule'  
-        },
-        {
-          reg: /^#?本周课表$/,
-          fnc: 'thisWeekSchedule'
         },
         {
           reg: /^#?删除课程\s*(\d+)$/,
