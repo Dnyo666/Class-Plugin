@@ -150,18 +150,29 @@ export class Class extends plugin {
 
   // 查看课表
   async viewSchedule(e) {
-    const userData = this.getUserData(e.user_id)
-    if(!userData.courses.length) {
-      await e.reply('暂无课程信息')
-      return true
+    try {
+      const userData = this.getUserData(e.user_id)
+      if(!userData.courses.length) {
+        await e.reply('暂无课程信息')
+        return true
+      }
+  
+      const currentWeek = this.getCurrentWeek()
+      const render = new Render()
+      const imagePath = await render.courseTable(userData.courses, currentWeek)
+      
+      if(fs.existsSync(imagePath)) {
+        await e.reply(segment.image(`file:///${imagePath}`))
+        fs.unlinkSync(imagePath)
+      } else {
+        throw new Error('生成课表图片失败')
+      }
+    } catch(err) {
+      logger.error(err)
+      await e.reply('生成课表失败,请稍后重试')
     }
-
-    const render = new Render()
-    const image = await render.courseTable(userData.courses)
-    await e.reply(image)
     return true
   }
-
   // 解析周数
   parseWeeks(weekStr) {
     let weeks = []
