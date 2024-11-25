@@ -10,39 +10,38 @@ const __dirname = dirname(__filename)
 const pluginPath = join(__dirname, '..')
 const pluginName = 'class-plugin'
 
+let BotName = 'Unknown'
+let BotPath = ''
+let BotVersion = ''
+let pluginVersion = ''
+
 try {
   // 读取插件package.json
   const pluginPackage = JSON.parse(fs.readFileSync(join(pluginPath, 'package.json'), 'utf8'))
-  const pluginVersion = pluginPackage.version
+  pluginVersion = pluginPackage.version
 
   // 读取Bot package.json
-  const BotPath = join(pluginPath, '../..')
+  BotPath = join(pluginPath, '../..')
   const BotPackage = JSON.parse(fs.readFileSync(join(BotPath, 'package.json'), 'utf8'))
-  const BotVersion = BotPackage.version
+  BotVersion = BotPackage.version
 
   // 判断Bot类型
-  const BotName = (() => {
-    if (BotPackage.name === 'miao-yunzai') {
-      return 'Miao-Yunzai'
-    } else if (BotPackage.name === 'trss-yunzai') {
-      return 'Trss-Yunzai'
-    } else if (BotPackage.name === 'yunzai-bot') {
-      return 'Yunzai-Bot'
-    } else {
-      return 'Unknown'
-    }
-  })()
-
-  export default {
-    pluginName,
-    pluginPath,
-    pluginVersion,
-    BotName,
-    BotPath,
-    BotVersion
+  if (BotPackage.name === 'miao-yunzai') {
+    BotName = 'Miao-Yunzai'
+  } else if (BotPackage.name === 'trss-yunzai') {
+    BotName = 'Trss-Yunzai'
+  } else if (BotPackage.name === 'yunzai-bot') {
+    BotName = 'Yunzai-Bot'
   }
-
 } catch (err) {
   logger.error('[Class-Plugin] 读取package.json失败', err)
-  process.exit()
+}
+
+export {
+  pluginName,
+  pluginPath,
+  pluginVersion,
+  BotName,
+  BotPath,
+  BotVersion
 }
