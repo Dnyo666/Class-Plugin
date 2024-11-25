@@ -122,8 +122,8 @@ export function supportGuoba() {
         }
       ],
       
-      getConfigData() {
-        const userId = this.ctx.form.userId
+      getConfigData(form = {}) {
+        const userId = form.userId
         if (!userId) return {}
         return Config.getUserConfig(userId)
       },
