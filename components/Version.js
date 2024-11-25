@@ -34,7 +34,7 @@ try {
     BotName = 'Yunzai-Bot'
   }
 } catch (err) {
-  plugin.error('[Class-Plugin] 读取package.json失败', err)
+  console.error('[Class-Plugin] 读取package.json失败', err)
 }
 
 export {
