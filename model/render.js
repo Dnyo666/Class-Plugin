@@ -150,52 +150,59 @@ export class Render {
   }
 
   async help(helpCfg, helpGroup) {
-    const canvas = createCanvas(800, 1000)
-    const ctx = canvas.getContext('2d')
+    const data = {
+      helpCfg,
+      helpGroup,
+      style: await this.getStyle(),
+      bgType: Math.ceil(Math.random() * 3),
+      colCount: helpCfg.colCount || 3
+    }
     
-    // 使用系统默认字体
-    const fontFamily = '"Microsoft YaHei", "SimHei", sans-serif'
-    
-    // 绘制背景
-    ctx.fillStyle = '#f5f5f5'
-    ctx.fillRect(0, 0, 800, 1000)
-    
-    // 绘制标题
-    ctx.font = `36px ${fontFamily}`
-    ctx.fillStyle = '#333'
-    ctx.fillText(helpCfg.title, 50, 80)
-    
-    // 绘制副标题
-    ctx.font = `24px ${fontFamily}`
-    ctx.fillText(helpCfg.subTitle, 50, 120)
-    
-    // 绘制分组
-    let y = 180
-    helpGroup.forEach(group => {
-      ctx.font = `28px ${fontFamily}`
-      ctx.fillStyle = '#666'
-      ctx.fillText(group.group, 50, y)
-      y += 50
-      
-      group.list.forEach(help => {
-        ctx.font = `24px ${fontFamily}`
-        ctx.fillStyle = '#409EFF'
-        ctx.fillText(help.title, 80, y)
-        ctx.fillStyle = '#666'
-        ctx.fillText(help.desc, 300, y)
-        y += 40
-      })
-      y += 30
+    // 使用 puppeteer 渲染 HTML 模板
+    const puppeteer = require('puppeteer')
+    const browser = await puppeteer.launch({ 
+      headless: 'new',
+      args: ['--no-sandbox']
     })
-
-    // 保存为临时文件
+    const page = await browser.newPage()
+    
+    // 设置视图大小
+    await page.setViewport({
+      width: 800,
+      height: 1000,
+      deviceScaleFactor: 1.6
+    })
+    
+    // 渲染模板
+    const html = await this.renderTemplate('/help/index.html', data)
+    await page.setContent(html)
+    
+    // 截图
     const tempPath = `${process.cwd()}/data/class-plugin/temp/help.png`
-    const out = fs.createWriteStream(tempPath)
-    const stream = canvas.createPNGStream()
-    stream.pipe(out)
-    
-    return new Promise((resolve) => {
-      out.on('finish', () => resolve(tempPath))
+    await page.screenshot({
+      path: tempPath,
+      fullPage: true
     })
+    
+    await browser.close()
+    return tempPath
+  }
+
+  async getStyle() {
+    return `
+      body {
+        width: 800px;
+        background: #f5f5f5;
+      }
+      .help-icon {
+        width: 40px;
+        height: 40px;
+        background: url(${process.cwd()}/plugins/class-plugin/resources/img/icon.png);
+        background-size: 500px auto;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      /* 其他样式... */
+    `
   }
 }
