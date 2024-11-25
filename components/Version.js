@@ -1,48 +1,48 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import { fileURLToPath } from 'url'
-import { join, dirname, basename } from 'path'
+import { join, dirname } from 'path'
+import { logger } from '../../../lib/plugins/plugin.js'
 
 const __filename = fileURLToPath(import.meta.url)
-
 const __dirname = dirname(__filename)
 
-const BotPackage = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+// 插件路径
+const pluginPath = join(__dirname, '..')
+const pluginName = 'class-plugin'
 
-const pluginPath = join(__dirname, '..').replace(/\\/g, '/')
+try {
+  // 读取插件package.json
+  const pluginPackage = JSON.parse(fs.readFileSync(join(pluginPath, 'package.json'), 'utf8'))
+  const pluginVersion = pluginPackage.version
 
-const pluginName = basename(pluginPath)
+  // 读取Bot package.json
+  const BotPath = join(pluginPath, '../..')
+  const BotPackage = JSON.parse(fs.readFileSync(join(BotPath, 'package.json'), 'utf8'))
+  const BotVersion = BotPackage.version
 
-const pluginPackage = JSON.parse(fs.readFileSync(join(pluginPath, 'package.json'), 'utf8'))
+  // 判断Bot类型
+  const BotName = (() => {
+    if (BotPackage.name === 'miao-yunzai') {
+      return 'Miao-Yunzai'
+    } else if (BotPackage.name === 'trss-yunzai') {
+      return 'Trss-Yunzai'
+    } else if (BotPackage.name === 'yunzai-bot') {
+      return 'Yunzai-Bot'
+    } else {
+      return 'Unknown'
+    }
+  })()
 
-const pluginVersion = pluginPackage.version
-
-/**
- * @type {'Karin'|'Miao-Yunzai'|'Trss-Yunzai'|'Yunzai-Next'}
- */
-const BotName = (() => {
-  if (/^karin/i.test(pluginName)) {
-    return 'Karin'
-  } else if (BotPackage.dependencies.react) {
-    fs.rmdirSync(pluginPath, { recursive: true })
-    return 'Yunzai-Next'
-  } else if (Array.isArray(global.Bot?.uin)) {
-    return 'Trss-Yunzai'
-  } else if (BotPackage.dependencies.sequelize) {
-    return 'Miao-Yunzai'
-  } else {
-    throw new Error('还有人玩Yunzai-Bot??')
+  export default {
+    pluginName,
+    pluginPath,
+    pluginVersion,
+    BotName,
+    BotPath,
+    BotVersion
   }
-})()
 
-const BotVersion = BotPackage.version
-
-const BotPath = join(pluginPath, '../..')
-
-export default {
-  BotName,
-  BotPath,
-  BotVersion,
-  pluginName,
-  pluginPath,
-  pluginVersion
+} catch (err) {
+  logger.error('[Class-Plugin] 读取package.json失败', err)
+  process.exit()
 }

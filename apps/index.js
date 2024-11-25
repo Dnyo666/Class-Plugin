@@ -1,10 +1,11 @@
 import fs from 'node:fs'
-import plugin from '#lib'
 import { join } from 'node:path'
-import { App, Version } from '#components'
+import plugin from '../../../lib/plugins/plugin.js'
+import { logger } from '../../../lib/plugins/plugin.js'
+import { App } from '../components/App.js'
+import { Version } from '../components/Version.js'
 
 const startTime = Date.now()
-
 const path = join(Version.pluginPath, 'apps')
 
 const files = fs.readdirSync(path).filter(file => file.endsWith('.js'))

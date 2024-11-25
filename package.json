@@ -11,17 +11,10 @@
     "moment": "^2.30.1",
     "node-schedule": "^2.1.1"
   },
-  "imports": {
-    "#lib": {
-      "default": "../../../lib/plugins/plugin.js"
-    },
-    "#components": {
-      "default": "./components/index.js"
-    },
-    "#models": {
-      "default": "./models/index.js"
-    }
-  },
   "author": "Dnyo666",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dnyo666/Class-Plugin"
+  }
 }
