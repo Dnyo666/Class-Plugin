@@ -8,6 +8,10 @@
   "license": "MIT",
   "dependencies": {
     "canvas": "^2.11.2",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "xlsx": "^0.18.5",
+    "moment": "^2.29.4",
+    "node-fetch": "^3.3.0",
+    "jsdom": "^22.1.0"
   }
 }

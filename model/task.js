@@ -9,6 +9,11 @@ export class Task {
   }
 
   init() {
+    if(!schedule?.scheduleJob) {
+      logger.error('[Class-Plugin] node-schedule 模块加载失败')
+      return
+    }
+    
     // 每分钟检查一次
     schedule.scheduleJob('* * * * *', () => this.checkCourses())
   }
@@ -76,14 +81,43 @@ export class Task {
       `时间: ${course.section}节`
     ].join('\n')
 
-    // 这里需要调用Bot的发送消息接口
     if(Bot) {
       if(mode === 'private') {
         await Bot.pickUser(userId).sendMsg(msg)
       } else {
-        // 群聊提醒需要获取用户所在群
-        // TODO: 实现群聊提醒
+        // 获取用户所在群
+        const groups = await this.getUserGroups(userId)
+        if(groups.length) {
+          // 选择最后活跃的群发送提醒
+          const group = groups[0]
+          await Bot.pickGroup(group).sendMsg([
+            segment.at(userId),
+            msg
+          ])
+        } else {
+          // 找不到群时降级为私聊
+          await Bot.pickUser(userId).sendMsg(msg)
+        }
       }
+    }
+  }
+
+  async getUserGroups(userId) {
+    try {
+      // 获取用户所在的群列表
+      const groups = await Bot.gl.values()
+      return Array.from(groups)
+        .filter(group => group.members.has(userId))
+        .map(group => group.group_id)
+        .sort((a, b) => {
+          // 按最后发言时间排序
+          const timeA = group.members.get(userId)?.last_sent_time || 0
+          const timeB = group.members.get(userId)?.last_sent_time || 0
+          return timeB - timeA
+        })
+    } catch(e) {
+      logger.error(`获取用户群聊失败: ${e}`)
+      return []
     }
   }
 } 

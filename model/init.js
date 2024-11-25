@@ -11,7 +11,9 @@ class Init {
   initDirs() {
     const dirs = [
       `${_path}/data/class-plugin`,
-      `${_path}/data/class-plugin/data`
+      `${_path}/data/class-plugin/data`,
+      `${_path}/data/class-plugin/temp`,
+      `${_path}/plugins/class-plugin/config`
     ]
     
     for(const dir of dirs) {
@@ -23,19 +25,19 @@ class Init {
 
   initFiles() {
     // 初始化配置文件
-    const configPath = `${_path}/data/class-plugin/config.json`
+    const configPath = `${_path}/plugins/class-plugin/config/config.yaml`
     if(!fs.existsSync(configPath)) {
-      const defaultConfig = {
-        version: '1.0.0',
-        base: {
-          remind: {
-            enable: false,
-            advance: 10,
-            mode: 'private'
-          }
-        }
-      }
-      fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2))
+      const defaultConfig = `
+# 课表插件配置
+base:
+  startDate: '2024-02-26'  # 开学日期
+  maxWeek: 16             # 学期周数
+  
+remind:
+  defaultAdvance: 10      # 默认提前提醒时间(分钟)
+  defaultMode: 'private'  # 默认提醒方式
+`
+      fs.writeFileSync(configPath, defaultConfig)
     }
 
     // 初始化数据文件
