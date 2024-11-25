@@ -15,12 +15,17 @@
 git clone --depth=1 https://github.com/Dnyo666/Class-Plugin.git ./plugins/class-plugin/
 ```
 
-2. 安装依赖
+2. 进入项目目录
+```bash
+cd ./plugins/class-plugin/
+```
+
+3. 安装依赖
 ```bash
 pnpm install --filter=class-plugin
 ```
 
-3. 重启云崽
+4. 重启云崽
 
 ## 功能介绍
 
@@ -92,7 +97,7 @@ pnpm install --filter=class-plugin
 
 ## 贡献者
 
-> 🌟 感谢所有为 **Class-Schedule-Plugin** 做出贡献的人！
+> 🌟 感谢所有为 **Class-Plugin** 做出贡献的人！
 
 <a href="https://github.com/Dnyo666/Class-Plugin/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Dnyo666%2FClass-Plugin" />
