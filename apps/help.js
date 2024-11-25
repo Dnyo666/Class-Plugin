@@ -1,5 +1,7 @@
 import plugin from '../../../lib/plugins/plugin.js';
+import { Render } from '../model/render.js';
 import { helpCfg, helpList } from '../resources/help/config.js';
+import fs from 'fs';
 
 export class Help extends plugin {
     constructor() {
@@ -18,18 +20,20 @@ export class Help extends plugin {
     }
 
     async help(e) {
-        let msg = []
-        msg.push('课表插件帮助\n')
-        
-        for (let group of helpList) {
-            msg.push(`\n${group.group}：`)
-            for (let item of group.list) {
-                msg.push(`\n${item.title}`)
-                msg.push(item.desc)
+        try {
+            const render = new Render();
+            const imagePath = await render.help(helpCfg, helpList);
+            
+            if(fs.existsSync(imagePath)) {
+                await e.reply(segment.image(`file:///${imagePath}`));
+                fs.unlinkSync(imagePath);
+            } else {
+                throw new Error('生成帮助图片失败');
             }
+        } catch(err) {
+            logger.error(err);
+            await e.reply('生成帮助图片失败,请稍后重试');
         }
-
-        await e.reply(msg.join('\n'))
-        return true
+        return true;
     }
 }
