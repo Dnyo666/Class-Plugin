@@ -3,6 +3,7 @@ import { createRequire } from 'module'
 import lodash from 'lodash'
 import fs from 'fs'
 import { Render } from '../model/render.js'
+import moment from 'moment'
 
 const _path = process.cwd()
 
@@ -70,6 +71,20 @@ export class Class extends plugin {
     }
     const data = JSON.parse(fs.readFileSync(this.dataFile, 'utf8'))
     return data.users[userId] || { 
+      config: {
+        startDate: moment().format('YYYY-MM-DD'),
+        maxWeek: 16,
+        sections: [
+          { name: '第一节', start: '08:00', end: '08:45' },
+          { name: '第二节', start: '08:55', end: '09:40' },
+          { name: '第三节', start: '10:10', end: '10:55' },
+          { name: '第四节', start: '11:05', end: '11:50' },
+          { name: '第五节', start: '14:00', end: '14:45' },
+          { name: '第六节', start: '14:55', end: '15:40' },
+          { name: '第七节', start: '16:00', end: '16:45' },
+          { name: '第八节', start: '16:55', end: '17:40' }
+        ]
+      },
       courses: [], 
       adjustments: [],
       remind: {
@@ -191,21 +206,33 @@ export class Class extends plugin {
 
   // 本周课表
   async thisWeekSchedule(e) {
-    const currentWeek = this.getCurrentWeek()
-    const userData = this.getUserData(e.user_id)
-    
-    const weekCourses = userData.courses.filter(course => 
-      course.weeks.includes(currentWeek)
-    )
+    try {
+      const currentWeek = this.getCurrentWeek()
+      const userData = this.getUserData(e.user_id)
+      
+      const weekCourses = userData.courses.filter(course => 
+        course.weeks.includes(currentWeek)
+      )
 
-    if(!weekCourses.length) {
-      await e.reply('本周没有课程')
-      return true
+      if(!weekCourses.length) {
+        await e.reply('本周没有课程')
+        return true
+      }
+
+      const render = new Render()
+      const imagePath = await render.courseTable(weekCourses, currentWeek)
+      
+      if(fs.existsSync(imagePath)) {
+        await e.reply(segment.image(`file:///${imagePath}`))
+        // 发送后删除临时文件
+        fs.unlinkSync(imagePath)
+      } else {
+        throw new Error('生成课表图片失败')
+      }
+    } catch(err) {
+      logger.error(err)
+      await e.reply('生成课表失败,请稍后重试')
     }
-
-    const render = new Render()
-    const image = await render.courseTable(weekCourses, currentWeek)
-    await e.reply(segment.image(image))
     return true
   }
 
