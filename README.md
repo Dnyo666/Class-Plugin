@@ -12,7 +12,7 @@
 
 1. 克隆项目
 ```bash
-git clone --depth=1 https://github.com/Dnyo666/Class-Plugin.git ./plugins/class-plugin/
+git clone https://github.com/Dnyo666/Class-Plugin.git ./plugins/class-plugin/
 ```
 
 2. 进入插件目录
