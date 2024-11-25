@@ -1,6 +1,41 @@
 import fs from 'node:fs'
+import path from 'path'
+import moment from 'moment'
 
 const _path = process.cwd()
+
+export class DataManager {
+  constructor() {
+    this.dataDir = path.join(process.cwd(), 'data/class-plugin/users')
+    if(!fs.existsSync(this.dataDir)) {
+      fs.mkdirSync(this.dataDir, { recursive: true })
+    }
+  }
+
+  getUserDataPath(userId) {
+    return path.join(this.dataDir, `${userId}.json`)
+  }
+
+  getDefaultData() {
+    return {
+      term: {
+        startDate: moment().format('YYYY-MM-DD'),
+        endDate: moment().add(4, 'months').format('YYYY-MM-DD'),
+        currentWeek: 1
+      },
+      schedule: {
+        sections: [
+          { section: 1, startTime: '08:15', endTime: '09:00', type: 'course' },
+          { section: 0, startTime: '09:00', endTime: '09:05', type: 'break' },
+          { section: 2, startTime: '09:05', endTime: '09:50', type: 'course' },
+          // ... 其他时间段
+        ]
+      },
+      courses: [],
+      adjustments: []
+    }
+  }
+}
 
 class Init {
   constructor() {
