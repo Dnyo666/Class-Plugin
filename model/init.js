@@ -13,7 +13,10 @@ class Init {
       `${_path}/data/class-plugin`,
       `${_path}/data/class-plugin/data`,
       `${_path}/data/class-plugin/temp`,
-      `${_path}/plugins/class-plugin/config`
+      `${_path}/plugins/class-plugin/config`,
+      `${_path}/plugins/class-plugin/resources`,
+      `${_path}/plugins/class-plugin/resources/font`,
+      `${_path}/plugins/class-plugin/resources/img`
     ]
     
     for(const dir of dirs) {
