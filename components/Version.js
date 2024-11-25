@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
-import { logger } from '../../../lib/plugins/plugin.js'
+import plugin from '../../../lib/plugins/plugin.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -34,7 +34,7 @@ try {
     BotName = 'Yunzai-Bot'
   }
 } catch (err) {
-  logger.error('[Class-Plugin] 读取package.json失败', err)
+  plugin.error('[Class-Plugin] 读取package.json失败', err)
 }
 
 export {
