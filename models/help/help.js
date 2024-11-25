@@ -76,7 +76,6 @@ export const helpList = [
   },
   {
     group: '管理功能',
-    auth: 'master',
     list: [
       {
         icon: 31,

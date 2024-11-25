@@ -1,0 +1,30 @@
+<template>
+  <div class="schedule-table">
+    <div class="header">
+      <div class="title">课程表</div>
+      <div class="week">{{currentWeek ? `第${currentWeek}周` : ''}}</div>
+    </div>
+    
+    <table>
+      <tr>
+        <th>节次/星期</th>
+        <th>一</th>
+        <th>二</th>
+        <th>三</th>
+        <th>四</th>
+        <th>五</th>
+      </tr>
+      
+      {{each sections section}}
+      <tr>
+        <td>{{section}}</td>
+        {{each weekDays day}}
+        <td>
+          {{renderCourse(schedules, day, section)}}
+        </td>
+        {{/each}}
+      </tr>
+      {{/each}}
+    </table>
+  </div>
+</template> 

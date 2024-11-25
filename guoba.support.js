@@ -1,15 +1,14 @@
 import lodash from 'lodash'
-import { Config } from '#components'
-import { setting } from '#models'
+import { Config } from '../config/config.js'
 
 export function supportGuoba () {
   return {
     pluginInfo: {
-      name: 'class-schedule',
+      name: 'Class-Plugin',
       title: '课表插件',
-      author: '浅巷墨黎、鹿茸茅草屋',
-      authorLink: 'https://github.com/XasYer',
-      link: 'https://github.com/XasYer/class-schedule',
+      author: '@Dnyo666',
+      authorLink: 'https://github.com/Dnyo666',
+      link: 'https://github.com/Dnyo666/Class-Plugin',
       isV3: true,
       isV2: false,
       description: '提供课表相关功能',
@@ -40,8 +39,7 @@ export function supportGuoba () {
       title: '课表管理',
       icon: 'mdi:calendar-edit',
       path: '/schedule',
-      component: 'Schedule',
-      auth: 'master'
+      component: 'Schedule'
     }
   }
 }
