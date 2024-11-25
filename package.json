@@ -11,6 +11,11 @@
     "moment": "^2.30.1",
     "node-schedule": "^2.1.1"
   },
+  "imports": {
+    "#lib": "../../../lib/plugins/plugin.js",
+    "#components": "./components/index.js",
+    "#models": "./models/index.js"
+  },
   "author": "Dnyo666",
   "license": "MIT"
 }

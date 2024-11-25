@@ -1,9 +1,7 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import { createRequire } from 'module'
 import lodash from 'lodash'
-import moment from 'moment'
-import { db } from '../model/index.js'
-import { Op } from 'sequelize'
+import { Restart } from '../../other/restart.js'
 
 export class Schedule extends plugin {
   constructor () {
