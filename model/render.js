@@ -8,17 +8,19 @@ export class Render {
   constructor() {
     this.width = 1000
     this.height = 800
-    this.padding = 30
-    this.cellWidth = (this.width - this.padding * 2) / 5  // 5天
-    this.cellHeight = (this.height - this.padding * 2) / 6 // 6节课
     this.initFont()
   }
 
   initFont() {
-    // 注册字体
-    registerFont(`${_path}/plugins/class-plugin/resources/font/HYWenHei.ttf`, {
-      family: 'HYWenHei'
-    })
+    try {
+      // 使用系统默认字体
+      const fontPath = `${process.cwd()}/plugins/class-plugin/resources/font/HYWenHei.ttf`
+      if(fs.existsSync(fontPath)) {
+        registerFont(fontPath, { family: 'HYWenHei' })
+      }
+    } catch (e) {
+      logger.warn('[Class-Plugin] 使用系统默认字体')
+    }
   }
 
   async courseTable(courses, currentWeek) {
@@ -151,29 +153,32 @@ export class Render {
     const canvas = createCanvas(800, 1000)
     const ctx = canvas.getContext('2d')
     
+    // 使用系统默认字体
+    const fontFamily = '"Microsoft YaHei", "SimHei", sans-serif'
+    
     // 绘制背景
     ctx.fillStyle = '#f5f5f5'
     ctx.fillRect(0, 0, 800, 1000)
     
-    // 使用系统默认字体作为备选
-    ctx.font = '36px "HYWenHei", "Microsoft YaHei", sans-serif'
+    // 绘制标题
+    ctx.font = `36px ${fontFamily}`
     ctx.fillStyle = '#333'
     ctx.fillText(helpCfg.title, 50, 80)
-    ctx.font = '24px HYWenHei'
+    
+    // 绘制副标题
+    ctx.font = `24px ${fontFamily}`
     ctx.fillText(helpCfg.subTitle, 50, 120)
     
     // 绘制分组
     let y = 180
     helpGroup.forEach(group => {
-      // 绘制分组标题
-      ctx.font = '28px HYWenHei'
+      ctx.font = `28px ${fontFamily}`
       ctx.fillStyle = '#666'
       ctx.fillText(group.group, 50, y)
       y += 50
       
-      // 绘制命令列表
       group.list.forEach(help => {
-        ctx.font = '24px HYWenHei'
+        ctx.font = `24px ${fontFamily}`
         ctx.fillStyle = '#409EFF'
         ctx.fillText(help.title, 80, y)
         ctx.fillStyle = '#666'
@@ -183,6 +188,14 @@ export class Render {
       y += 30
     })
 
-    return canvas.toBuffer('image/png')
+    // 保存为临时文件
+    const tempPath = `${process.cwd()}/data/class-plugin/temp/help.png`
+    const out = fs.createWriteStream(tempPath)
+    const stream = canvas.createPNGStream()
+    stream.pipe(out)
+    
+    return new Promise((resolve) => {
+      out.on('finish', () => resolve(tempPath))
+    })
   }
 }

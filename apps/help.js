@@ -2,6 +2,8 @@ import plugin from '../../../lib/plugins/plugin.js';
 import { Render } from '../model/render.js';
 import { helpCfg, helpList } from '../resources/help/config.js';
 import _ from 'lodash';
+import fs from 'fs';
+import logger from '../../../lib/logger.js';
 
 export class Help extends plugin {
     constructor() {
@@ -35,9 +37,15 @@ export class Help extends plugin {
             helpGroup.push(group);
         });
 
-        const render = new Render();
-        const image = await render.help(helpCfg, helpGroup);
-        await e.reply(segment.image(image));
+        try {
+            const render = new Render();
+            const imagePath = await render.help(helpCfg, helpGroup);
+            await e.reply(segment.image(imagePath));
+            fs.unlinkSync(imagePath);
+        } catch(err) {
+            logger.error(err);
+            await e.reply('生成帮助图片失败');
+        }
         return true;
     }
 }
