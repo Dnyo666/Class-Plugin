@@ -54,7 +54,7 @@ export class Render {
   drawHeader(ctx) {
     const days = ['周一', '周二', '周三', '周四', '周五']
     ctx.fillStyle = '#333333'
-    ctx.font = '20px HYWenHei'
+    ctx.font = '20px "HYWenHei", "Microsoft YaHei", sans-serif'
     ctx.textAlign = 'center'
     
     days.forEach((day, index) => {
@@ -155,8 +155,8 @@ export class Render {
     ctx.fillStyle = '#f5f5f5'
     ctx.fillRect(0, 0, 800, 1000)
     
-    // 绘制标题
-    ctx.font = '36px HYWenHei'
+    // 使用系统默认字体作为备选
+    ctx.font = '36px "HYWenHei", "Microsoft YaHei", sans-serif'
     ctx.fillStyle = '#333'
     ctx.fillText(helpCfg.title, 50, 80)
     ctx.font = '24px HYWenHei'
