@@ -1,8 +1,8 @@
-![Class-Schedule-Plugin](https://socialify.git.ci/XasYer/class-schedule/image?description=1&font=Raleway&forks=1&issues=1&language=1&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Auto)
+![Class-Plugin](https://socialify.git.ci/Dnyo666/Class-Plugin/image?description=1&font=Raleway&forks=1&issues=1&language=1&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Auto)
 
-<img decoding="async" align=right src="resources/readme/schedule.png" width="35%">
+<img decoding="async" align=right src="resources/readme/background.png" width="35%">
 
-# Class-Schedule-Plugin 📅
+# Class-Plugin 📅
 
 - 一个适用于 [Yunzai-Bot](https://github.com/Le-niao/Yunzai-Bot) 的课表管理插件
 - 提供课表管理、图片渲染、临时调课、上课提醒等功能
@@ -12,18 +12,15 @@
 
 1. 克隆项目
 ```bash
-git clone https://github.com/XasYer/class-schedule.git ./plugins/class-schedule/
+git clone --depth=1 https://github.com/Dnyo666/Class-Plugin.git ./plugins/class-plugin/
 ```
 
 2. 安装依赖
 ```bash
-pnpm install --filter=class-schedule
+pnpm install --filter=class-plugin
 ```
 
 3. 重启云崽
-```bash
-pnpm restart
-```
 
 ## 功能介绍
 
@@ -91,14 +88,14 @@ pnpm restart
 
 ## 联系方式
 
-- QQ群: [741577559](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=IvPaOVo_p-6n--FaLm1v39ML9EZaBRCm)
+- QQ群: [303104111](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=gdLRKPbtdd23Tw9M0HthGaU-PRXFToFY&authKey=ULxjgIsrwBQt74OIgbozC8aztsuHYPNvQcpERBqGf9TvUwdO2myrJxhSZTx2kwdh&noverify=0&group_code=303104111)
 
 ## 贡献者
 
 > 🌟 感谢所有为 **Class-Schedule-Plugin** 做出贡献的人！
 
-<a href="https://github.com/XasYer/class-schedule/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=XasYer%2Fclass-schedule" />
+<a href="https://github.com/Dnyo666/Class-Plugin/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Dnyo666%2FClass-Plugin" />
 </a>
 
 ## 其他
