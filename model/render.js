@@ -146,4 +146,43 @@ export class Render {
     ]
     return colors[Math.abs(hash) % colors.length]
   }
+
+  async help(helpCfg, helpGroup) {
+    const canvas = createCanvas(800, 1000)
+    const ctx = canvas.getContext('2d')
+    
+    // 绘制背景
+    ctx.fillStyle = '#f5f5f5'
+    ctx.fillRect(0, 0, 800, 1000)
+    
+    // 绘制标题
+    ctx.font = '36px HYWenHei'
+    ctx.fillStyle = '#333'
+    ctx.fillText(helpCfg.title, 50, 80)
+    ctx.font = '24px HYWenHei'
+    ctx.fillText(helpCfg.subTitle, 50, 120)
+    
+    // 绘制分组
+    let y = 180
+    helpGroup.forEach(group => {
+      // 绘制分组标题
+      ctx.font = '28px HYWenHei'
+      ctx.fillStyle = '#666'
+      ctx.fillText(group.group, 50, y)
+      y += 50
+      
+      // 绘制命令列表
+      group.list.forEach(help => {
+        ctx.font = '24px HYWenHei'
+        ctx.fillStyle = '#409EFF'
+        ctx.fillText(help.title, 80, y)
+        ctx.fillStyle = '#666'
+        ctx.fillText(help.desc, 300, y)
+        y += 40
+      })
+      y += 30
+    })
+
+    return canvas.toBuffer('image/png')
+  }
 }
