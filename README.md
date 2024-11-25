@@ -15,14 +15,14 @@
 git clone --depth=1 https://github.com/Dnyo666/Class-Plugin.git ./plugins/class-plugin/
 ```
 
-2. 进入项目目录
+2. 进入插件目录
 ```bash
-cd ./plugins/class-plugin/
+cd ./plugins/Class-Plugin/
 ```
 
 3. 安装依赖
 ```bash
-pnpm install --filter=class-plugin
+pnpm install
 ```
 
 4. 重启云崽
