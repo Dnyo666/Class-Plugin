@@ -12,9 +12,15 @@
     "node-schedule": "^2.1.1"
   },
   "imports": {
-    "#lib": "../../../lib/plugins/plugin.js",
-    "#components": "./components/index.js",
-    "#models": "./models/index.js"
+    "#lib": {
+      "default": "../../../lib/plugins/plugin.js"
+    },
+    "#components": {
+      "default": "./components/index.js"
+    },
+    "#models": {
+      "default": "./models/index.js"
+    }
   },
   "author": "Dnyo666",
   "license": "MIT"

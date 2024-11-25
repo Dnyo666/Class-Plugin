@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { logger } from '#lib'
+import plugin from '#lib'
 import { join } from 'node:path'
 import { App, Version } from '#components'
 
@@ -24,12 +24,12 @@ for (const i of files) {
     }
     apps[app.id] = app.create()
   } catch (error) {
-    logger.error(`[${Version.pluginName}]加载js: apps/${i}错误\n`, error)
+    plugin.error(`[${Version.pluginName}]加载js: apps/${i}错误\n`, error)
   }
 }
 
 export { apps }
 
-logger.info('-----------------')
-logger.info(`${Version.pluginName} v${Version.pluginVersion} 加载成功~ 耗时: ${Date.now() - startTime}ms`)
-logger.info('-------^_^-------')
+plugin.info('-----------------')
+plugin.info(`${Version.pluginName} v${Version.pluginVersion} 加载成功~ 耗时: ${Date.now() - startTime}ms`)
+plugin.info('-------^_^-------')
