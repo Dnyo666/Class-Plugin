@@ -5,16 +5,9 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "axios": "^1.6.7",
-    "http-proxy-agent": "^7.0.2",
-    "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "node-schedule": "^2.1.1"
   },
   "author": "Dnyo666",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Dnyo666/Class-Plugin"
-  }
+  "license": "MIT"
 }

@@ -1,10 +1,9 @@
-import lodash from 'lodash'
-import Version from './Version.js'
-import { plugin, logger } from '#lib'
+import plugin from '../../../lib/plugins/plugin.js'
+import { Version } from './Version.js'
 
 const throttle = {}
 
-export default class {
+export class App {
   constructor ({
     id,
     name,
