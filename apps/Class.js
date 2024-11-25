@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import fs from 'fs'
 import { Render } from '../model/render.js'
 import moment from 'moment'
+import { Config } from '../model/config.js'
 
 const _path = process.cwd()
 
@@ -66,40 +67,12 @@ export class Class extends plugin {
 
   // 获取用户课程数据
   getUserData(userId) {
-    if(!fs.existsSync(this.dataFile)) {
-      fs.writeFileSync(this.dataFile, JSON.stringify({users:{}}, null, 2))
-    }
-    const data = JSON.parse(fs.readFileSync(this.dataFile, 'utf8'))
-    return data.users[userId] || { 
-      config: {
-        startDate: moment().format('YYYY-MM-DD'),
-        maxWeek: 16,
-        sections: [
-          { name: '第一节', start: '08:00', end: '08:45' },
-          { name: '第二节', start: '08:55', end: '09:40' },
-          { name: '第三节', start: '10:10', end: '10:55' },
-          { name: '第四节', start: '11:05', end: '11:50' },
-          { name: '第五节', start: '14:00', end: '14:45' },
-          { name: '第六节', start: '14:55', end: '15:40' },
-          { name: '第七节', start: '16:00', end: '16:45' },
-          { name: '第八节', start: '16:55', end: '17:40' }
-        ]
-      },
-      courses: [], 
-      adjustments: [],
-      remind: {
-        enable: false,
-        advance: 10,
-        mode: 'private'
-      }
-    }
+    return Config.getUserConfig(userId)
   }
 
   // 保存用户课程数据
   saveUserData(userId, userData) {
-    const data = JSON.parse(fs.readFileSync(this.dataFile, 'utf8'))
-    data.users[userId] = userData
-    fs.writeFileSync(this.dataFile, JSON.stringify(data, null, 2))
+    Config.setUserConfig(userId, userData)
   }
 
   // 添加课程

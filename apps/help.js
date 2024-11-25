@@ -1,9 +1,7 @@
 import plugin from '../../../lib/plugins/plugin.js';
 import { Render } from '../model/render.js';
 import { helpCfg, helpList } from '../resources/help/config.js';
-import _ from 'lodash';
 import fs from 'fs';
-import logger from '../../../lib/logger.js';
 
 export class Help extends plugin {
     constructor() {
