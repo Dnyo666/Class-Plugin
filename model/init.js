@@ -12,7 +12,11 @@ class Init {
     const dirs = [
       `${_path}/plugins/class-plugin/resources`,
       `${_path}/plugins/class-plugin/resources/font`,
-      `${_path}/plugins/class-plugin/resources/img`
+      `${_path}/plugins/class-plugin/resources/img`,
+      `${_path}/plugins/class-plugin/config`,
+      `${_path}/data/class-plugin`,
+      `${_path}/data/class-plugin/data`,
+      `${_path}/data/class-plugin/temp`
     ]
     
     for(const dir of dirs) {
