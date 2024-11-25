@@ -18,10 +18,12 @@ const BotName = packageJson.name === 'miao-yunzai' ? 'Miao-Yunzai' :
                packageJson.name === 'trss-yunzai' ? 'Trss-Yunzai' : 
                packageJson.name === 'yunzai-bot' ? 'Yunzai-Bot' : 'Unknown'
 
-export {
+const Version = {
   pluginName,
   pluginPath,
   pluginVersion,
   BotName,
   BotVersion
 }
+
+export { Version }
