@@ -2,7 +2,6 @@ import plugin from '../../../lib/plugins/plugin.js'
 import { createRequire } from 'module'
 import lodash from 'lodash'
 import { Restart } from '../../other/restart.js'
-import { Version } from '../components/Version.js'
 
 const require = createRequire(import.meta.url)
 const { exec, execSync } = require('child_process')
@@ -10,21 +9,21 @@ const { exec, execSync } = require('child_process')
 let uping = false
 
 export class Update extends plugin {
-  constructor () {
+  constructor() {
     super({
-      name: 'Class-Plugin-更新',
+      name: 'Class-更新插件',
       event: 'message',
       priority: 1009,
       rule: [
         {
-          reg: '^#?(课表|class)((插件)?(强制)?更新|update)$',
+          reg: '^#?(课表|class)(插件)?(强制)?更新$',
           fnc: 'update'
         }
       ]
     })
   }
 
-  async update () {
+  async update() {
     if (!this.e.isMaster) return false
 
     if (uping) {
@@ -44,38 +43,38 @@ export class Update extends plugin {
     }
   }
 
-  restart () {
+  restart() {
     new Restart(this.e).restart()
   }
 
-  async runUpdate (isForce) {
-    let command = 'git -C ./plugins/Class-Plugin/ pull --no-rebase'
+  async runUpdate(isForce) {
+    let command = 'git -C ./plugins/class-plugin/ pull --no-rebase'
     if (isForce) {
-      command = `git -C ./plugins/Class-Plugin/ checkout . && ${command}`
+      command = `git -C ./plugins/class-plugin/ checkout . && ${command}`
       this.e.reply('正在执行强制更新操作，请稍等')
     } else {
       this.e.reply('正在执行更新操作，请稍等')
     }
 
-    this.oldCommitId = await this.getcommitId('Class-Plugin')
+    this.oldCommitId = await this.getcommitId('class-plugin')
     uping = true
     const ret = await this.execSync(command)
     uping = false
 
     if (ret.error) {
-      logger.mark(`${this.e.logFnc} 更新失败：Class-Plugin`)
+      logger.mark(`${this.e.logFnc} 更新失败：class-plugin`)
       this.gitErr(ret.error, ret.stdout)
       return false
     }
 
-    const time = await this.getTime('Class-Plugin')
+    const time = await this.getTime('class-plugin')
 
     if (/(Already up[ -]to[ -]date|已经是最新的)/.test(ret.stdout)) {
-      await this.reply(`Class-Plugin已经是最新版本\n最后更新时间：${time}`)
+      await this.reply(`class-plugin已经是最新版本\n最后更新时间：${time}`)
     } else {
-      await this.reply(`Class-Plugin\n最后更新时间：${time}`)
+      await this.reply(`class-plugin\n最后更新时间：${time}`)
       this.isUp = true
-      const log = await this.getLog('Class-Plugin')
+      const log = await this.getLog('class-plugin')
       await this.reply(log)
     }
 
@@ -84,7 +83,7 @@ export class Update extends plugin {
     return true
   }
 
-  async getLog (plugin = '') {
+  async getLog(plugin = '') {
     const cm = `cd ./plugins/${plugin}/ && git log  -20 --oneline --pretty=format:"%h||[%cd]  %s" --date=format:"%m-%d %H:%M"`
 
     let logAll
@@ -111,21 +110,25 @@ export class Update extends plugin {
 
     if (log.length <= 0) return ''
 
-    let end = '更多详细信息，请前往github查看\nhttps://github.com/Dnyo666/Class-Plugin/commits/main'
+    let end = ''
+    end =
+      '更多详细信息，请前往github查看\nhttps://github.com/CikeyQi/skland-plugin/commits/main'
 
-    log = await this.makeForwardMsg(`Class-Plugin更新日志，共${line}条`, log, end)
+    log = await this.makeForwardMsg(`class-plugin更新日志，共${line}条`, log, end)
 
     return log
   }
 
-  async getcommitId (plugin = '') {
+  async getcommitId(plugin = '') {
     const cm = `git -C ./plugins/${plugin}/ rev-parse --short HEAD`
+
     let commitId = await execSync(cm, { encoding: 'utf-8' })
     commitId = lodash.trim(commitId)
+
     return commitId
   }
 
-  async getTime (plugin = '') {
+  async getTime(plugin = '') {
     const cm = `cd ./plugins/${plugin}/ && git log -1 --oneline --pretty=format:"%cd" --date=format:"%m-%d %H:%M"`
 
     let time = ''
@@ -139,7 +142,7 @@ export class Update extends plugin {
     return time
   }
 
-  async makeForwardMsg (title, msg, end) {
+  async makeForwardMsg(title, msg, end) {
     let nickname = (this.e.bot ?? Bot).nickname
     if (this.e.isGroup) {
       let info = await (this.e.bot ?? Bot).getGroupMemberInfo(this.e.group_id, (this.e.bot ?? Bot).uin)
@@ -176,7 +179,7 @@ export class Update extends plugin {
       return msg.join('\n')
     }
 
-    let dec = 'Class-Plugin 更新日志'
+    let dec = 'class-plugin 更新日志'
     if (typeof (forwardMsg.data) === 'object') {
       let detail = forwardMsg.data?.meta?.detail
       if (detail) {
@@ -192,7 +195,7 @@ export class Update extends plugin {
     return forwardMsg
   }
 
-  async gitErr (err, stdout) {
+  async gitErr(err, stdout) {
     const msg = '更新失败！'
     const errMsg = err.toString()
     stdout = stdout.toString()
@@ -210,7 +213,11 @@ export class Update extends plugin {
     }
 
     if (errMsg.includes('be overwritten by merge')) {
-      await this.reply(msg + `存在冲突：\n${errMsg}\n请解决冲突后再更新，或者执行#强制更新，放弃本地修改`)
+      await this.reply(
+        msg +
+        `存在冲突：\n${errMsg}\n` +
+        '请解决冲突后再更新，或者执行#强制更新，放弃本地修改'
+      )
       return
     }
 
@@ -227,7 +234,7 @@ export class Update extends plugin {
     await this.reply([errMsg, stdout])
   }
 
-  async execSync (cmd) {
+  async execSync(cmd) {
     return new Promise((resolve, reject) => {
       exec(cmd, { windowsHide: true }, (error, stdout, stderr) => {
         resolve({ error, stdout, stderr })
@@ -235,7 +242,7 @@ export class Update extends plugin {
     })
   }
 
-  async checkGit () {
+  async checkGit() {
     const ret = await execSync('git --version', { encoding: 'utf-8' })
     if (!ret || !ret.includes('git version')) {
       await this.reply('请先安装git')
@@ -243,4 +250,4 @@ export class Update extends plugin {
     }
     return true
   }
-} 
+}

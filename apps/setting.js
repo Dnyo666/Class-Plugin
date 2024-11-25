@@ -1,123 +1,58 @@
-import { App, Config, Render } from '#components'
-import lodash from 'lodash'
-import { setting } from '#models'
+import plugin from '../../../lib/plugins/plugin.js'
+import { Config } from '../model/config.js'
 
-const keys = lodash.chain(setting.getCfgSchemaMap())
-  .map(i => i.key)
-  .sortBy(str => -str.length)
-  .value()
-
-const app = {
-  id: 'setting',
-  name: '设置'
-}
-
-export const rule = {
-  setting: {
-    reg: new RegExp(`^#steam设置\\s*(${keys.join('|')})?\\s*(.*)$`),
-    fnc: async e => {
-      if (!e.isMaster) {
-        await e.reply('只有主人才可以设置哦~')
-        return true
-      }
-      const regRet = rule.setting.reg.exec(e.msg)
-      const cfgSchemaMap = setting.getCfgSchemaMap()
-      if (!regRet) {
-        return true
-      }
-
-      if (regRet[1]) {
-        // 设置模式
-        let val = regRet[2] || ''
-
-        if (regRet[1] == '全部') {
-          val = !/关闭/.test(val)
-          for (const i of keys) {
-            if (typeof cfgSchemaMap[i].def == 'boolean') {
-              if (cfgSchemaMap[i].key == '全部') {
-                await redis.set('steam-plugin:set-all', val ? 1 : 0)
-              } else {
-                Config.modify(cfgSchemaMap[i].fileName, cfgSchemaMap[i].cfgKey, val)
-              }
-            }
-          }
-        } else {
-          const cfgSchema = cfgSchemaMap[regRet[1]]
-          if (cfgSchema.type !== 'array') {
-            if (cfgSchema.input) {
-              val = cfgSchema.input(val)
-            } else if (cfgSchema.type === 'number') {
-              val = val * 1 || cfgSchema.def
-            } else if (cfgSchema.type === 'boolean') {
-              val = !/关闭/.test(val)
-            } else if (cfgSchema.type === 'string') {
-              val = val.trim() || cfgSchema.def
-            }
-            Config.modify(cfgSchema.fileName, cfgSchema.cfgKey, val)
-          }
+export class Setting extends plugin {
+  constructor() {
+    super({
+      name: 'Class-设置',
+      dsc: '课表设置管理',
+      event: 'message',
+      priority: 5000,
+      rule: [
+        {
+          reg: '^#?(开启|关闭)提醒$',
+          fnc: 'toggleRemind'
+        },
+        {
+          reg: '^#?设置提醒时间\\s*(\\\d+)$',
+          fnc: 'setRemindTime'
+        },
+        {
+          reg: '^#?切换提醒方式$',
+          fnc: 'toggleRemindMode'
         }
-      }
+      ]
+    })
+  }
 
-      const schema = setting.cfgSchema
-      const cfg = Config.getCfg()
-      cfg.setAll = (await redis.get('steam-plugin:set-all')) == 1
+  async toggleRemind(e) {
+    const enable = e.msg.includes('开启')
+    const config = Config.getUserConfig(e.user_id)
+    config.remind.enable = enable
+    Config.setUserConfig(e.user_id, config)
+    await e.reply(`已${enable ? '开启' : '关闭'}课程提醒`)
+    return true
+  }
 
-      const img = await Render.render('setting/index', {
-        schema,
-        cfg
-      }, { e, scale: 1.4 })
-      if (img) {
-        await e.reply(img)
-      } else {
-        await e.reply('截图失败辣! 再试一次叭')
-      }
+  async setRemindTime(e) {
+    const minutes = parseInt(e.msg.match(/\d+/)[0])
+    if(minutes < 1 || minutes > 60) {
+      await e.reply('提醒时间需要在1-60分钟之间')
       return true
     }
-  },
-  push: {
-    reg: /^#steam(添加|删除)?推送((?:bot)?[黑白])名单(列表)?\s*(.*)?$/,
-    fnc: async e => {
-      if (!e.isMaster) {
-        await e.reply('只有主人才可以设置哦~')
-        return true
-      }
-      const regRet = rule.push.reg.exec(e.msg)
-      const isBot = /bot/i.test(e.msg)
-      const target = regRet[2].includes('黑')
-        ? isBot ? 'blackBotList' : 'blackGroupList'
-        : isBot ? 'whiteBotList' : 'whiteGroupList'
-      const data = Config.push[target]
-      if (regRet[3] || !regRet[1]) {
-        await e.reply(`${regRet[2]}名单列表:\n ${data.join('\n') || '空'}`)
-        return true
-      }
-      const type = regRet[1] === '添加' ? 'add' : 'del'
-      const id = regRet[4]?.trim() || (isBot ? String(e.self_id) : String(e.group_id))
-      if (!id) {
-        await e.reply('请输入群号或在指定群中使用~')
-        return true
-      }
-      if (type === 'add') {
-        if (data.some(i => i == id)) {
-          await e.reply(`${id}已经在${regRet[2]}名单中了~`)
-        } else {
-          data.push(id)
-          await e.reply(`已将${id}添加到${regRet[2]}名单了~现在的${regRet[2]}名单是:\n ${data.join('\n') || '空'}`)
-          Config.modify('push', target, data)
-        }
-      } else {
-        const index = data.findIndex(i => i == id)
-        if (index === -1) {
-          await e.reply(`${id}不在${regRet[2]}名单中~`)
-        } else {
-          data.splice(index, 1)
-          await e.reply(`已将${id}移出${regRet[2]}名单了~现在的${regRet[2]}名单是:\n ${data.join('\n') || '空'}`)
-          Config.modify('push', target, data)
-        }
-      }
-      return true
-    }
+    
+    const config = Config.getUserConfig(e.user_id)
+    config.remind.advance = minutes
+    Config.setUserConfig(e.user_id, config)
+    await e.reply(`已设置提前${minutes}分钟提醒`)
+    return true
+  }
+
+  async toggleRemindMode(e) {
+    const config = Config.getUserConfig(e.user_id)
+    config.remind.mode = config.remind.mode === 'private' ? 'group' : 'private'
+    Config.setUserConfig(e.user_id, config)
+    await e.reply(`已切换为${config.remind.mode === 'private' ? '私聊' : '群聊'}提醒`)
+    return true
   }
 }
-
-export const settingApp = new App(app, rule).create()

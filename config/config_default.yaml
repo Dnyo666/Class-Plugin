@@ -1,0 +1,28 @@
+# 基础配置
+base:
+  # 提醒默认配置
+  remind:
+    enable: false     # 是否开启提醒
+    advance: 10       # 默认提前提醒时间(分钟)
+    mode: private     # 提醒方式:private/group
+
+# 课程数据结构
+data:
+  courses:
+    - id: "1"        # 课程ID
+      name: ""       # 课程名称
+      teacher: ""    # 教师
+      location: ""   # 教室
+      weeks: []      # 上课周数
+      day: 1         # 星期几(1-7)
+      section: 1     # 第几节(1-12)
+      
+  # 调课记录
+  adjustments:
+    - courseId: "1"  # 课程ID
+      fromWeek: 1    # 原周数
+      fromDay: 1     # 原星期
+      fromSection: 1 # 原节数
+      toWeek: 2      # 新周数
+      toDay: 2       # 新星期
+      toSection: 2   # 新节数

@@ -1,53 +1,49 @@
-import { App, Render, Version } from '#components'
-import lodash from 'lodash'
-import { help as helpUtil } from '#models'
+import plugin from '../../../lib/plugins/plugin.js';
 
-const app = {
-  id: 'help',
-  name: '帮助'
-}
-
-export const rule = {
-  help: {
-    reg: /^#?(课表|class)(插件|plugin)?(帮助|菜单|help)$/i,
-    fnc: help
-  }
-}
-
-export const helpApp = new App(app, rule).create()
-
-async function help (e) {
-  const helpGroup = []
-
-  lodash.forEach(helpUtil.helpList, (group) => {
-    if (group.auth && group.auth === 'master' && !e.isMaster) {
-      return true
+export class Help extends plugin {
+    constructor() {
+        super({
+            name: 'Class-帮助',
+            dsc: '课表插件帮助',
+            event: 'message',
+            priority: 5000,
+            rule: [
+                {
+                    reg: '^#?(课表|class)帮助$',
+                    fnc: 'help'
+                }
+            ]
+        })
     }
 
-    lodash.forEach(group.list, (help) => {
-      const icon = help.icon * 1
-      if (!icon) {
-        help.css = 'display:none'
-      } else {
-        const x = (icon - 1) % 10
-        const y = (icon - x - 1) / 10
-        help.css = `background-position:-${x * 50}px -${y * 50}px`
-      }
-    })
+    async help(e) {
+        const helpMsg = `课表插件使用帮助：
+1. 课程管理
+  #添加课程 课程名 教师 教室 星期 节数 周数
+  例如：#添加课程 高数 张三 A101 周一 1-2 1-16周
+  #删除课程 [课程ID]
+  #修改课程 [课程ID] [属性]=[新值]
+  
+2. 课表查看
+  #课表 - 查看完整课表
+  #本周课表 - 查看本周课表
+  
+3. 调课功能
+  #调课 [课程ID] [新节数]
+  #取消调课 [课程ID]
+  #调课记录
+  
+4. 提醒设置
+  #开启提醒
+  #关闭提醒
+  #设置提醒时间 [分钟]
+  #切换提醒方式
 
-    helpGroup.push(group)
-  })
-  const themeData = await helpUtil.helpTheme.getThemeData(helpUtil.helpCfg)
-  const img = await Render.render('help/index', {
-    helpCfg: helpUtil.helpCfg,
-    helpGroup,
-    ...themeData,
-    scale: 1.2
-  })
-  if (img) {
-    await e.reply(img)
-  } else {
-    await e.reply('截图失败辣! 再试一次叭')
-  }
-  return true
+5. 其他功能
+  #课表帮助 - 显示本帮助
+  #课表更新 - 更新插件`
+
+        await e.reply(helpMsg)
+        return true
+    }
 }

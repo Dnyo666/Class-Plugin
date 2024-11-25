@@ -1,58 +1,62 @@
-import { join } from 'path'
-import { puppeteer } from '#lib'
-import { Version, Config } from '#components'
+import Version from './Version.js'
+import { pluginRoot } from '../model/path.js'
+import fs from 'fs'
 
-function scale (pct = 1) {
-  const scale = Math.min(2, Math.max(0.5, Config.other.renderScale / 100))
-  pct = pct * scale
-  return `style=transform:scale(${pct})`
+function scale(pct = 1) {
+    let scale = 100
+    scale = Math.min(2, Math.max(0.5, scale / 100))
+    pct = pct * scale
+    return `style=transform:scale(${pct})`
 }
 
 const Render = {
-  async render (path, params) {
-    path = path.replace(/.html$/, '')
-    const layoutPath = join(Version.pluginPath, 'resources', 'common', 'layout')
-    const data = {
-      tplFile: `${Version.pluginPath}/resources/${path}.html`,
-      pluResPath: `${Version.pluginPath}/resources/`,
-      saveId: path.split('/').pop(),
-      imgType: 'jpeg',
-      defaultLayout: join(layoutPath, 'default.html'),
-      sys: {
-        scale: scale(params.scale || 1),
-        copyright: params.copyright || `Created By <span class="version"> ${Version.BotName} v${Version.BotVersion} </span> & <span class="version"> ${Version.pluginName} v${Version.pluginVersion} </span>`
-      },
-      pageGotoParams: {
-        waitUntil: 'networkidle0' // +0.5s
-      },
-      ...params
+    async render(path, params, cfg) {
+        let { e } = cfg
+        if (!e.runtime) {
+            console.log('未找到e.runtime，请升级至最新版Yunzai')
+        }
+
+        let BotName = Version.isMiao ? 'Miao-Yunzai' : Version.isTrss ? 'TRSS-Yunzai' : 'Yunzai-Bot'
+        let currentVersion = null
+        const package_path = `${pluginRoot}/package.json`
+        try {
+            const package_json = JSON.parse(fs.readFileSync(package_path, 'utf-8'))
+            if (package_json.version) {
+                currentVersion = package_json.version
+            }
+        } catch (err) {
+            logger.error('读取package.json失败', err)
+        }
+        return e.runtime.render('skland-plugin', path, params, {
+            retType: cfg.retMsgId ? 'msgId' : 'default',
+            beforeRender({ data }) {
+                let pluginName = ''
+                if (data.pluginName !== false) {
+                    pluginName = ` & ${data.pluginName || 'skland-plugin'}`
+                    if (data.pluginVersion !== false) {
+                        pluginName += `<span class="version">${currentVersion}`
+                    }
+                }
+                let resPath = data.pluResPath
+                const layoutPath = process.cwd() + '/plugins/skland-plugin/resources/common/layout/'
+                return {
+                    ...data,
+                    _res_path: resPath,
+                    _mc_path: resPath,
+                    _layout_path: layoutPath,
+                    defaultLayout: layoutPath + 'default.html',
+                    elemLayout: layoutPath + 'elem.html',
+                    sys: {
+                        scale: scale(cfg.scale || 1)
+                    },
+                    copyright: `Created By ${BotName}<span class="version">${Version.yunzai}</span>${pluginName}</span>`,
+                    pageGotoParams: {
+                        waitUntil: 'networkidle2'
+                    }
+                }
+            }
+        })
     }
-    if (path === 'inventory/index') {
-      data.hiddenLength = Config.other.hiddenLength
-      const minLength = Math.min(
-        Math.max(...params.data.map(i => i.games.length)),
-        Math.max(1, Number(Config.other.itemLength) || 1)
-      )
-      const size = params.data.findIndex(i => i.size === 'large') >= 0 ? 370 : 300
-      const len = minLength === 1 ? 1.4 : minLength
-      data.style = `<style>\n#container,.games{\nwidth: ${len * size}px;\n}\n</style>`
-    }
-    return await puppeteer.screenshot(path, data)
-  },
-  async simpleRender (path, params) {
-    path = path.replace(/.html$/, '')
-    const data = {
-      tplFile: `${Version.pluginPath}/resources/${path}.html`,
-      pluResPath: `${Version.pluginPath}/resources/`,
-      saveId: path.split('/').pop(),
-      imgType: 'jpeg',
-      pageGotoParams: {
-        waitUntil: 'networkidle0' // +0.5s
-      },
-      ...params
-    }
-    return await puppeteer.screenshot(path, data)
-  }
 }
 
 export default Render
