@@ -119,6 +119,56 @@ export function supportGuoba() {
               { label: '群聊提醒', value: 'group' }
             ]
           }
+        },
+        {
+          field: 'schedule.courses',
+          label: '课程管理',
+          component: 'GSubForm',
+          componentProps: {
+            multiple: true,
+            schemas: [
+              {
+                field: 'name',
+                label: '课程名称',
+                component: 'Input'
+              },
+              {
+                field: 'teacher',
+                label: '教师',
+                component: 'Input'
+              },
+              {
+                field: 'location',
+                label: '教室',
+                component: 'Input'
+              },
+              {
+                field: 'weekDay',
+                label: '星期',
+                component: 'Select',
+                componentProps: {
+                  options: [
+                    { label: '周一', value: 1 },
+                    { label: '周二', value: 2 },
+                    { label: '周三', value: 3 },
+                    { label: '周四', value: 4 },
+                    { label: '周五', value: 5 }
+                  ]
+                }
+              },
+              {
+                field: 'section',
+                label: '节次',
+                component: 'Select',
+                componentProps: {
+                  options: Array(8).fill(0).map((_, i) => ({
+                    label: `第${i + 1}节`,
+                    value: (i + 1).toString()
+                  }))
+                }
+              }
+            ]
+          }
         }
       ],
       

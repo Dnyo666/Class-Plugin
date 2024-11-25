@@ -70,4 +70,28 @@ export class Render {
       style: (await import('../resources/help/imgs/config.js')).style
     })
   }
+
+  async courseTable(courses, currentWeek) {
+    const browser = await this.initBrowser()
+    if (!browser) return false
+
+    const page = await browser.newPage()
+    await page.setViewport({ width: 1000, height: 800 })
+
+    const html = await this.getHtml('schedule/index', {
+      courses,
+      currentWeek,
+      weekDays: ['周一', '周二', '周三', '周四', '周五'],
+      sections: Array(8).fill(0).map((_, i) => `第${i + 1}节`)
+    })
+
+    await page.setContent(html)
+    const body = await page.$('#container')
+    const buff = await body.screenshot()
+    await page.close()
+
+    const tmpPath = path.join(_path, 'temp', 'schedule.png')
+    fs.writeFileSync(tmpPath, buff)
+    return tmpPath
+  }
 }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    .schedule-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .schedule-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    .course-item {
+      background: #f0f0f0;
+      border-radius: 4px;
+      padding: 4px;
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <table class="schedule-table">
+      <tr>
+        <th>节次</th>
+        {{each weekDays day}}
+        <th>{{day}}</th>
+        {{/each}}
+      </tr>
+      {{each sections section sIndex}}
+      <tr>
+        <td>{{section}}</td>
+        {{each weekDays day dIndex}}
+        <td>
+          {{each courses course}}
+          {{if course.weekDay === dIndex+1 && course.section === (sIndex+1).toString()}}
+          <div class="course-item">
+            {{course.name}}<br>
+            {{course.teacher}}<br>
+            {{course.location}}
+          </div>
+          {{/if}}
+          {{/each}}
+        </td>
+        {{/each}}
+      </tr>
+      {{/each}}
+    </table>
+  </div>
+</body>
+</html> 
