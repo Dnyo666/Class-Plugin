@@ -9,13 +9,9 @@ const app = {
 
 export const rule = {
   help: {
-    reg: /^#?steam(插件|plugin)?(帮助|菜单|help)$/i,
+    reg: /^#?(课表|class)(插件|plugin)?(帮助|菜单|help)$/i,
     fnc: help
   }
-  // version: {
-  //   reg: /^#?steam(插件|plugin)?(版本|version)$/i,
-  //   fnc: version
-  // }
 }
 
 export const helpApp = new App(app, rule).create()
@@ -54,14 +50,4 @@ async function help (e) {
     await e.reply('截图失败辣! 再试一次叭')
   }
   return true
-}
-
-// eslint-disable-next-line no-unused-vars
-async function version (e) {
-  const img = await Render.render('help/version-info', {
-    currentVersion: Version.version,
-    changelogs: Version.changelogs,
-    scale: 1.2
-  })
-  return await e.reply(img)
 }
