@@ -3,7 +3,6 @@ import path from 'path'
 import { Config } from './model/config.js'
 
 export function supportGuoba() {
-  // 获取所有用户列表
   const dataDir = path.join(process.cwd(), 'data/class-plugin/data')
   let users = []
   if (fs.existsSync(dataDir)) {
@@ -34,13 +33,14 @@ export function supportGuoba() {
           field: 'userId',
           label: '选择用户',
           component: 'Select',
+          required: true,
           componentProps: {
             options: users
           }
         },
         {
           component: 'Divider',
-          label: '用户课表设置'
+          label: '基础设置'
         },
         {
           field: 'base.startDate',
@@ -67,26 +67,67 @@ export function supportGuoba() {
           label: '课程设置'
         },
         {
-          field: 'schedule.sections',
-          label: '作息时间',
+          field: 'courses',
+          label: '课程管理',
           component: 'GSubForm',
           componentProps: {
             multiple: true,
             schemas: [
               {
                 field: 'name',
-                label: '节次名称',
+                label: '课程名称',
+                component: 'Input',
+                required: true
+              },
+              {
+                field: 'teacher',
+                label: '教师',
                 component: 'Input'
               },
               {
-                field: 'start',
-                label: '开始时间',
-                component: 'TimePicker'
+                field: 'location',
+                label: '教室',
+                component: 'Input'
               },
               {
-                field: 'end', 
-                label: '结束时间',
-                component: 'TimePicker'
+                field: 'weekDay',
+                label: '星期',
+                component: 'Select',
+                required: true,
+                componentProps: {
+                  options: [
+                    { label: '周一', value: 1 },
+                    { label: '周二', value: 2 },
+                    { label: '周三', value: 3 },
+                    { label: '周四', value: 4 },
+                    { label: '周五', value: 5 }
+                  ]
+                }
+              },
+              {
+                field: 'section',
+                label: '节次',
+                component: 'Select',
+                required: true,
+                componentProps: {
+                  options: Array(8).fill(0).map((_, i) => ({
+                    label: `第${i + 1}节`,
+                    value: (i + 1).toString()
+                  }))
+                }
+              },
+              {
+                field: 'weeks',
+                label: '周数',
+                component: 'Select',
+                required: true,
+                componentProps: {
+                  mode: 'multiple',
+                  options: Array(16).fill(0).map((_, i) => ({
+                    label: `第${i + 1}周`,
+                    value: i + 1
+                  }))
+                }
               }
             ]
           }
@@ -119,59 +160,9 @@ export function supportGuoba() {
               { label: '群聊提醒', value: 'group' }
             ]
           }
-        },
-        {
-          field: 'schedule.courses',
-          label: '课程管理',
-          component: 'GSubForm',
-          componentProps: {
-            multiple: true,
-            schemas: [
-              {
-                field: 'name',
-                label: '课程名称',
-                component: 'Input'
-              },
-              {
-                field: 'teacher',
-                label: '教师',
-                component: 'Input'
-              },
-              {
-                field: 'location',
-                label: '教室',
-                component: 'Input'
-              },
-              {
-                field: 'weekDay',
-                label: '星期',
-                component: 'Select',
-                componentProps: {
-                  options: [
-                    { label: '周一', value: 1 },
-                    { label: '周二', value: 2 },
-                    { label: '周三', value: 3 },
-                    { label: '周四', value: 4 },
-                    { label: '周五', value: 5 }
-                  ]
-                }
-              },
-              {
-                field: 'section',
-                label: '节次',
-                component: 'Select',
-                componentProps: {
-                  options: Array(8).fill(0).map((_, i) => ({
-                    label: `第${i + 1}节`,
-                    value: (i + 1).toString()
-                  }))
-                }
-              }
-            ]
-          }
         }
       ],
-      
+
       getConfigData(form = {}) {
         const userId = form.userId
         if (!userId) return {}
@@ -184,7 +175,7 @@ export function supportGuoba() {
           if (!userId) {
             return Result.error('请选择用户')
           }
-          delete data.userId // 移除用户ID字段
+          delete data.userId
           Config.setUserConfig(userId, data)
           return Result.ok({}, '保存成功')
         } catch(e) {

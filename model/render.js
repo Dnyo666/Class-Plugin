@@ -45,7 +45,7 @@ export class Render {
       helpCfg,
       helpGroup: helpList,
       colCount: helpCfg.colCount || 3,
-      bgType: Math.ceil(Math.random() * 3)
+      style: this.getStyle()
     })
 
     await page.setContent(html)
@@ -58,6 +58,13 @@ export class Render {
     return tmpPath
   }
 
+  getStyle() {
+    const styleConfig = require('../resources/help/imgs/config.js').style
+    return Object.entries(styleConfig).map(([key, value]) => 
+      `.${key} { ${value} }`
+    ).join('\n')
+  }
+
   async getHtml(type, data) {
     const tplPath = path.join(_path, 'plugins', 'class-plugin', 'resources', type + '.html')
     const layoutPath = path.join(_path, 'plugins', 'class-plugin', 'resources', 'common', 'layout.html')
@@ -66,8 +73,7 @@ export class Render {
       ...data,
       _layout: layoutPath,
       _res_path: path.join(_path, 'plugins', 'class-plugin', 'resources'),
-      defaultLayout: layoutPath,
-      style: (await import('../resources/help/imgs/config.js')).style
+      defaultLayout: layoutPath
     })
   }
 
