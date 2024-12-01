@@ -7,28 +7,6 @@ import { Config } from './model/config.js'
 const _path = process.cwd()
 const pluginPath = _path + '/plugins/class-plugin'
 
-// 生成周数选项
-function generateWeekOptions() {
-  const weekOptions = []
-  // 添加快速选择选项
-  weekOptions.push(
-    { label: '单周', value: 'odd', type: 'quick' },
-    { label: '双周', value: 'even', type: 'quick' },
-    { label: '全选', value: 'all', type: 'quick' },
-    { label: '工作日', value: '1-5', type: 'quick' },
-    { label: '周末', value: '6-7', type: 'quick' }
-  )
-  // 添加具体周数
-  for (let i = 1; i <= 30; i++) {
-    weekOptions.push({
-      label: `第${i}周`,
-      value: i,
-      type: 'week'
-    })
-  }
-  return weekOptions
-}
-
 export function supportGuoba() {
   let allGroup = []
   Bot.gl.forEach((v, k) => {
@@ -202,15 +180,24 @@ export function supportGuoba() {
               {
                 field: 'weeks',
                 label: '周数',
-                component: 'GCheckbox',
+                component: 'Select',
                 required: true,
                 bottomHelpMessage: '选择上课周数（可多选）',
                 componentProps: {
-                  options: generateWeekOptions(),
+                  mode: 'multiple',
+                  options: [
+                    { label: '单周', value: 'odd', group: '快速选择' },
+                    { label: '双周', value: 'even', group: '快速选择' },
+                    { label: '工作日', value: '1-5', group: '快速选择' },
+                    { label: '周末', value: '6-7', group: '快速选择' },
+                    ...Array.from({ length: 30 }, (_, i) => ({
+                      label: `第${i + 1}周`,
+                      value: i + 1,
+                      group: '具体周数'
+                    }))
+                  ],
                   onChange: (value, form, field) => {
-                    const weeks = new Set(value.filter(v => typeof v === 'number'))
-                    
-                    // 处理快速选择
+                    const weeks = new Set()
                     value.forEach(v => {
                       if (typeof v === 'string') {
                         switch(v) {
@@ -220,9 +207,6 @@ export function supportGuoba() {
                           case 'even':
                             for (let i = 2; i <= 30; i += 2) weeks.add(i)
                             break
-                          case 'all':
-                            for (let i = 1; i <= 30; i++) weeks.add(i)
-                            break
                           case '1-5':
                             for (let i = 1; i <= 5; i++) weeks.add(i)
                             break
@@ -231,10 +215,10 @@ export function supportGuoba() {
                             weeks.add(7)
                             break
                         }
+                      } else {
+                        weeks.add(v)
                       }
                     })
-                    
-                    // 更新选中的周数
                     form.setFieldValue(field.name, Array.from(weeks).sort((a, b) => a - b))
                   }
                 }
@@ -245,18 +229,40 @@ export function supportGuoba() {
       ],
 
       getConfigData() {
-        let config = {}
         const dataDir = path.join(_path, 'data/class-plugin/data')
-        if (fs.existsSync(dataDir)) {
-          const files = fs.readdirSync(dataDir)
-          files.forEach(file => {
-            if (file.endsWith('.json')) {
-              const userId = file.replace('.json', '')
+        if (!fs.existsSync(dataDir)) return {}
+
+        const files = fs.readdirSync(dataDir)
+        const config = {}
+
+        files.forEach(file => {
+          if (file.endsWith('.json')) {
+            const userId = file.replace('.json', '')
+            try {
               const userData = Config.getUserConfig(userId)
-              config[userId] = userData
+              if (userData) {
+                config[userId] = {
+                  base: {
+                    startDate: userData.base?.startDate || moment().format('YYYY-MM-DD'),
+                    maxWeek: Number(userData.base?.maxWeek || 16)
+                  },
+                  courses: (userData.courses || []).map(course => ({
+                    ...course,
+                    weekDay: Number(course.weekDay),
+                    weeks: course.weeks?.map(w => Number(w)) || []
+                  })),
+                  remind: {
+                    enable: Boolean(userData.remind?.enable),
+                    advance: Number(userData.remind?.advance || 10),
+                    mode: userData.remind?.mode || 'private'
+                  }
+                }
+              }
+            } catch (err) {
+              console.error(`[Class-Plugin] 读取用户 ${userId} 配置失败:`, err)
             }
-          })
-        }
+          }
+        })
         return config
       },
 
@@ -268,22 +274,22 @@ export function supportGuoba() {
             // 验证并格式化数据
             const config = {
               base: {
-                startDate: userData.base?.startDate || moment().format('YYYY-MM-DD'),
-                maxWeek: userData.base?.maxWeek || 16
+                startDate: moment(userData.base?.startDate).format('YYYY-MM-DD'),
+                maxWeek: Number(userData.base?.maxWeek || 16)
               },
               courses: (userData.courses || []).map(course => ({
                 id: course.id || Date.now().toString(),
-                name: course.name,
-                teacher: course.teacher,
-                location: course.location,
-                weekDay: parseInt(course.weekDay),
-                section: course.section,
-                weeks: course.weeks.map(w => parseInt(w)).sort((a, b) => a - b)
+                name: String(course.name || ''),
+                teacher: String(course.teacher || ''),
+                location: String(course.location || ''),
+                weekDay: Number(course.weekDay),
+                section: String(course.section || ''),
+                weeks: (course.weeks || []).map(w => Number(w)).sort((a, b) => a - b)
               })),
               remind: {
-                enable: userData.remind?.enable || false,
-                advance: userData.remind?.advance || 10,
-                mode: userData.remind?.mode || 'private'
+                enable: Boolean(userData.remind?.enable),
+                advance: Number(userData.remind?.advance || 10),
+                mode: String(userData.remind?.mode || 'private')
               }
             }
 
