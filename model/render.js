@@ -86,7 +86,7 @@ export class Render {
       
       return template(params);
     } catch (error) {
-      logger.error(`[Class-Plugin] 渲染错误: ${error}`);
+      logger.mark(`[Class-Plugin] 渲染错误: ${error}`);
       return '';
     }
   }

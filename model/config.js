@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import path from 'path'
 import moment from 'moment'
 import { pluginRoot } from './path.js'
-import logger from './logger.js'
 
 export class Config {
   static dataDir = path.join(pluginRoot, 'data')
@@ -180,7 +179,7 @@ export class Config {
       const data = fs.readFileSync(filePath, 'utf8')
       return this.validateConfig(JSON.parse(data))
     } catch (err) {
-      logger.error(`[Class-Plugin] 读取用户配置失败: ${err}`)
+      logger.mark(`[Class-Plugin] 读取用户配置失败: ${err}`)
       return this.defaultConfig
     }
   }
@@ -207,7 +206,7 @@ export class Config {
             }
             fs.unlinkSync(tempPath)
           } catch (err) {
-            logger.error(`[Class-Plugin] 迁移临时数据失败: ${err}`)
+            logger.mark(`[Class-Plugin] 迁移临时数据失败: ${err}`)
           }
         }
       }
@@ -226,7 +225,7 @@ export class Config {
       fs.writeFileSync(filePath, JSON.stringify(validConfig, null, 2))
       return true
     } catch (err) {
-      logger.error(`[Class-Plugin] 保存用户配置失败: ${err}`)
+      logger.mark(`[Class-Plugin] 保存用户配置失败: ${err}`)
       return false
     }
   }
