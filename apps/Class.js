@@ -140,37 +140,35 @@ export class Class extends plugin {
           '',
           '说明：',
           '- 星期：周一/周二/周三/周四/周五',
-          '- 节数：1-2/3-4/5-6/7-8/9-10/1-4/5-8/9-12',
+          '- 节数：1-2/3-4/5-6/7-8/9-10/11-12',
           '- 周数：1-16周/单周/双周/1,3,5,7周'
         ].join('\n'))
         return true
       }
 
-      const [, name, teacher, location, weekDay, sectionStr, weeks] = params
+      const [, name, teacher, location, weekDay, section, weeks] = params
       const weekDayMap = {
         '周一': 1, '周二': 2, '周三': 3, '周四': 4, '周五': 5,
         '星期一': 1, '星期二': 2, '星期三': 3, '星期四': 4, '星期五': 5,
         '1': 1, '2': 2, '3': 3, '4': 4, '5': 5
       }
       
-      const day = weekDayMap[weekDay]
-      if (!day) {
+      const weekDayNum = weekDayMap[weekDay]
+      if (!weekDayNum) {
         await e.reply('星期格式错误，请使用: 周一/周二/周三/周四/周五')
         return true
       }
 
-      const sections = Utils.parseSections(sectionStr)
-      if (!sections) {
+      const time = Utils.parseTime(section)
+      if (!time) {
         await e.reply([
-          '节数格式错误，支持的节数组合：',
+          '节数格式错误，支持的节数：',
           '1-2节：08:00-09:40',
           '3-4节：10:00-11:40',
           '5-6节：14:00-15:40',
           '7-8节：16:00-17:40',
           '9-10节：19:00-20:40',
-          '11-12节：20:50-22:30',
-          '',
-          '也支持：1-4, 5-8, 9-12 等组合'
+          '11-12节：20:50-22:30'
         ].join('\n'))
         return true
       }
@@ -188,13 +186,13 @@ export class Class extends plugin {
         return true
       }
 
-      let userData = Config.getUserData(e.user_id)
+      let userData = Config.getUserConfig(e.user_id)
       if (!userData.courses) userData.courses = []
 
       // 检查时间冲突
       const hasConflict = userData.courses.some(c => 
-        c.day === day && 
-        c.sections.some(s => sections.includes(s)) &&
+        c.weekDay === weekDayNum && 
+        c.section === section &&
         c.weeks.some(w => weekList.includes(w))
       )
 
@@ -208,8 +206,8 @@ export class Class extends plugin {
         name,
         teacher,
         location,
-        day,
-        sections,
+        weekDay: weekDayNum,
+        section,
         weeks: weekList
       }
 
@@ -222,8 +220,7 @@ export class Class extends plugin {
 
       userData.courses.push(newCourse)
 
-      if (Config.setUserData(e.user_id, userData)) {
-        const times = Utils.getSectionTimes(sections)
+      if (Config.setUserConfig(e.user_id, userData)) {
         await e.reply([
           '✅ 添加课程成功！',
           '',
@@ -231,8 +228,8 @@ export class Class extends plugin {
           `📚 课程：${name}`,
           `👨‍🏫 教师：${teacher}`,
           `📍 教室：${location}`,
-          `📅 时间：周${['一','二','三','四','五'][day-1]} 第${sections.join(',')}节`,
-          `⏰ 时段：${times.start}-${times.end}`,
+          `📅 时间：周${['一','二','三','四','五'][weekDayNum-1]} ${section}节`,
+          `⏰ 时段：${time.start}-${time.end}`,
           `🗓️ 周数：${weeks}`
         ].join('\n'))
       } else {
@@ -240,7 +237,7 @@ export class Class extends plugin {
       }
       return true
     } catch(err) {
-      Logger.error('添加课程失败', err)
+      logger.error(`[Class-Plugin] 添加课程失败: ${err}`)
       await e.reply('添加课程失败，请稍后重试')
       return true
     }

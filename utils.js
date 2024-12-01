@@ -1,73 +1,54 @@
 import moment from 'moment'
-import Config from './components/Config.js'
-import Logger from './components/Logger.js'
 
-export class Utils {
-  // 解析课程时间
-  static parseSections(sectionStr) {
-    try {
-      const config = Config.get('schedule.combinations') || []
-      
-      // 查找匹配的时间组合
-      const combination = config.find(c => c.name === sectionStr)
-      if (combination) {
-        return combination.sections
-      }
+export default class Utils {
+  // 解析时间字符串
+  static parseTime(timeStr) {
+    if (!timeStr || typeof timeStr !== 'string') return null
 
-      // 如果没有预定义组合，尝试解析格式 "n-m"
-      const match = sectionStr.match(/^(\d+)-(\d+)$/)
-      if (match) {
-        const start = parseInt(match[1])
-        const end = parseInt(match[2])
-        if (start > 0 && end >= start && end <= 12) {
-          return Array.from({length: end - start + 1}, (_, i) => (start + i).toString())
-        }
-      }
+    const times = {
+      '1-2': { start: '08:00', end: '09:40' },
+      '3-4': { start: '10:00', end: '11:40' },
+      '5-6': { start: '14:00', end: '15:40' },
+      '7-8': { start: '16:00', end: '17:40' },
+      '9-10': { start: '19:00', end: '20:40' },
+      '11-12': { start: '20:50', end: '22:30' }
+    }
 
-      Logger.warn(`无效的课程时间格式: ${sectionStr}`)
-      return null
-    } catch (err) {
-      Logger.error(`解析课程时间失败: ${sectionStr}`, err)
-      return null
+    const time = times[timeStr]
+    if (!time) return null
+
+    return {
+      start: moment(time.start, 'HH:mm').isValid() ? time.start : null,
+      end: moment(time.end, 'HH:mm').isValid() ? time.end : null
     }
   }
 
-  // 获取课程时间信息
-  static getSectionTimes(sections) {
-    try {
-      const config = Config.get('schedule.sections')
-      if (!config) return null
-
-      const times = []
-      for (const section of sections) {
-        for (const period of Object.values(config)) {
-          const sectionInfo = period.find(s => s.id === section)
-          if (sectionInfo) {
-            times.push(sectionInfo)
-            break
-          }
-        }
-      }
-
-      if (times.length === 0) return null
-
-      return {
-        start: times[0].start,
-        end: times[times.length - 1].end
-      }
-    } catch (err) {
-      Logger.error(`获取课程时间失败`, err)
-      return null
+  // 获取当前教学周
+  static getCurrentWeek(startDate) {
+    if (!startDate || !moment(startDate).isValid()) {
+      logger.error('[Class-Plugin] 无效的开学日期')
+      return 1
     }
+
+    const start = moment(startDate).startOf('day')
+    const now = moment().startOf('day')
+    const weeks = Math.ceil(now.diff(start, 'weeks', true))
+    
+    return weeks > 0 ? weeks : 1
+  }
+
+  // 生成唯一ID
+  static generateId() {
+    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 
   // 解析周数
   static parseWeeks(weekStr) {
     if (!weekStr || typeof weekStr !== 'string') return []
     
+    let weeks = []
+    
     try {
-      let weeks = []
-      
       // 处理单双周
       if (weekStr.includes('单周')) {
         for (let i = 1; i <= 16; i += 2) weeks.push(i)
@@ -100,32 +81,11 @@ export class Utils {
           .sort((a, b) => a - b)
         return weeks
       }
-
-      Logger.warn(`无效的周数格式: ${weekStr}`)
-      return []
     } catch (err) {
-      Logger.error(`解析周数失败: ${weekStr}`, err)
-      return []
-    }
-  }
-
-  // 获取当前教学周
-  static getCurrentWeek(startDate) {
-    if (!startDate || !moment(startDate).isValid()) {
-      Logger.error('无效的开学日期')
-      return 1
+      logger.error(`[Class-Plugin] 解析周数失败: ${err}`)
     }
 
-    const start = moment(startDate).startOf('day')
-    const now = moment().startOf('day')
-    const weeks = Math.ceil(now.diff(start, 'weeks', true))
-    
-    return weeks > 0 ? weeks : 1
-  }
-
-  // 生成唯一ID
-  static generateId() {
-    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return []
   }
 
   // 格式化时间
@@ -139,19 +99,19 @@ export class Utils {
       throw new Error('无效的课程数据')
     }
 
-    const required = ['name', 'teacher', 'location', 'day', 'sections', 'weeks']
+    const required = ['name', 'teacher', 'location', 'weekDay', 'section', 'weeks']
     for (const field of required) {
       if (!course[field]) {
         throw new Error(`缺少必要字段: ${field}`)
       }
     }
     
-    if (!Number.isInteger(course.day) || course.day < 1 || course.day > 7) {
+    if (!Number.isInteger(course.weekDay) || course.weekDay < 1 || course.weekDay > 7) {
       throw new Error('无效的星期')
     }
     
-    if (!Array.isArray(course.sections) || !course.sections.length) {
-      throw new Error('无效的课程节数')
+    if (typeof course.section !== 'string' || !/^\d+-\d+$/.test(course.section)) {
+      throw new Error('无效的节数格式')
     }
     
     if (!Array.isArray(course.weeks) || !course.weeks.length || 
