@@ -174,7 +174,7 @@ class Server {
 
     // 仪表盘页面
     this.app.get('/dashboard', (req, res) => {
-      res.send(`
+      const html = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -195,40 +195,6 @@ class Server {
               border-radius: 8px;
               box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
-            h1 {
-              color: #333;
-              text-align: center;
-              margin-bottom: 20px;
-            }
-            .nav {
-              display: flex;
-              gap: 10px;
-              margin-bottom: 20px;
-              padding: 10px;
-              background: #f8f9fa;
-              border-radius: 4px;
-            }
-            .nav-item {
-              padding: 8px 16px;
-              background: #fff;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-              cursor: pointer;
-              transition: all 0.3s;
-            }
-            .nav-item:hover {
-              background: #e9ecef;
-            }
-            .nav-item.active {
-              background: #4CAF50;
-              color: white;
-              border-color: #4CAF50;
-            }
-            .content {
-              padding: 20px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            }
             .schedule-table {
               width: 100%;
               border-collapse: separate;
@@ -241,10 +207,7 @@ class Server {
             }
             .course-item {
               padding: 6px;
-            }
-            .course-item {
-              background: #e9ecef;
-              padding: 8px;
+              background: #f8f9fa;
               border-radius: 4px;
               margin-bottom: 5px;
             }
@@ -255,225 +218,86 @@ class Server {
               font-size: 12px;
               color: #666;
             }
-            .form-group {
-              margin-bottom: 15px;
-            }
-            label {
-              display: block;
-              margin-bottom: 5px;
-              color: #666;
-            }
-            input, select {
-              width: 100%;
-              padding: 8px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-              box-sizing: border-box;
-            }
-            button {
-              padding: 8px 16px;
-              background: #4CAF50;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              cursor: pointer;
-            }
-            button:hover {
-              background: #45a049;
-            }
           </style>
         </head>
         <body>
           <div class="container">
             <h1>课表管理系统</h1>
-            
-            <div class="nav">
-              <div class="nav-item active" onclick="showTab('schedule')">课表查看</div>
-              <div class="nav-item" onclick="showTab('add')">添加课程</div>
-              <div class="nav-item" onclick="showTab('edit')">课程管理</div>
-              <div class="nav-item" onclick="showTab('settings')">系统设置</div>
-            </div>
-
-            <div id="schedule" class="content">
-              <h2>我的课表</h2>
-              <div id="scheduleView"></div>
-            </div>
-
-            <div id="add" class="content" style="display:none;">
-              <h2>添加课程</h2>
-              <div class="form-group">
-                <label>课程名称</label>
-                <input type="text" id="courseName">
-              </div>
-              <div class="form-group">
-                <label>教师</label>
-                <input type="text" id="teacher">
-              </div>
-              <div class="form-group">
-                <label>教室</label>
-                <input type="text" id="location">
-              </div>
-              <div class="form-group">
-                <label>星期</label>
-                <select id="weekDay">
-                  <option value="1">周一</option>
-                  <option value="2">周二</option>
-                  <option value="3">周三</option>
-                  <option value="4">周四</option>
-                  <option value="5">周五</option>
-                  <option value="6">周六</option>
-                  <option value="7">周日</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>节数</label>
-                <select id="section">
-                  <option value="1-2">1-2节</option>
-                  <option value="3-4">3-4节</option>
-                  <option value="5-6">5-6节</option>
-                  <option value="7-8">7-8节</option>
-                  <option value="9-10">9-10节</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>周数</label>
-                <input type="text" id="weeks" placeholder="例如：1-16或1,3,5,7">
-              </div>
-              <button onclick="addCourse()">添加课程</button>
-            </div>
-
-            <div id="edit" class="content" style="display:none;">
-              <h2>课程管理</h2>
-              <div id="courseList"></div>
-            </div>
-
-            <div id="settings" class="content" style="display:none;">
-              <h2>系统设置</h2>
-              <div class="form-group">
-                <label>开学日期</label>
-                <input type="date" id="startDate">
-              </div>
-              <div class="form-group">
-                <label>学期周数</label>
-                <input type="number" id="maxWeek" min="1" max="30">
-              </div>
-              <button onclick="saveSettings()">保存设置</button>
-            </div>
+            <div id="scheduleView"></div>
           </div>
 
           <script>
             // 页面加载时获取课表数据
             window.onload = async function() {
-              await loadSchedule()
-              await loadSettings()
-            }
-
-            // 切换标签页
-            function showTab(tabId) {
-              document.querySelectorAll('.content').forEach(content => {
-                content.style.display = 'none'
-              })
-              document.getElementById(tabId).style.display = 'block'
+              const userId = new URLSearchParams(window.location.search).get('userId');
+              if (!userId) return;
               
-              document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active')
-              })
-              event.target.classList.add('active')
-            }
-
-            // 加载课表
-            async function loadSchedule() {
               try {
-                const userId = new URLSearchParams(window.location.search).get('userId')
-                const response = await fetch(\`/api/config/\${userId}\`)
-                const data = await response.json()
-                
+                const response = await fetch('/api/schedule/' + userId);
+                const data = await response.json();
                 if (data.code === 0) {
-                  renderSchedule(data.data)
+                  renderSchedule(data.data);
                 }
               } catch (err) {
-                console.error('加载课表失败:', err)
+                console.error('加载课表失败:', err);
               }
-            }
+            };
 
-            // 渲染课表
             function renderSchedule(data) {
-              const sections = ['1-2', '3-4', '5-6', '7-8', '9-10']
-              let scheduleHtml = [
-                '<div style="margin-bottom: 10px">',
-                `  <span>当前第 ${data.currentWeek} 周</span>`,
-                '</div>',
-                '<table class="schedule-table">',
-                '  <tr>',
-                '    <th>节次</th>',
-                '    <th>周一</th>',
-                '    <th>周二</th>',
-                '    <th>周三</th>',
-                '    <th>周四</th>',
-                '    <th>周五</th>',
-                '    <th>周六</th>',
-                '    <th>周日</th>',
-                '  </tr>'
-              ].join('\n')
+              const sections = ['1-2', '3-4', '5-6', '7-8', '9-10'];
+              let html = [];
+              
+              html.push('<div style="margin-bottom: 10px">');
+              html.push('  <span>当前第 ' + data.currentWeek + ' 周</span>');
+              html.push('</div>');
+              html.push('<table class="schedule-table">');
+              html.push('  <tr>');
+              html.push('    <th>节次</th>');
+              html.push('    <th>周一</th>');
+              html.push('    <th>周二</th>');
+              html.push('    <th>周三</th>');
+              html.push('    <th>周四</th>');
+              html.push('    <th>周五</th>');
+              html.push('    <th>周六</th>');
+              html.push('    <th>周日</th>');
+              html.push('  </tr>');
 
-              sections.forEach(section => {
-                scheduleHtml += `<tr><td>${section}</td>`
-                for (let day = 1; day <= 7; day++) {
-                  const courses = data.courses.filter(c => 
-                    c.weekDay === day && 
-                    c.section === section &&
-                    c.weeks.includes(data.currentWeek)
-                  )
-                  
-                  scheduleHtml += '<td>'
-                  courses.forEach(course => {
-                    scheduleHtml += [
-                      '<div class="course-item">',
-                      `  <div class="course-name">${course.name}</div>`,
-                      `  <div class="course-info">${course.teacher}</div>`,
-                      `  <div class="course-info">${course.location}</div>`,
-                      '</div>'
-                    ].join('\n')
-                  })
-                  scheduleHtml += '</td>'
-                }
-                scheduleHtml += '</tr>'
-              })
-
-              scheduleHtml += '</table>'
-              document.getElementById('scheduleView').innerHTML = scheduleHtml
-            }
-
-            // 加载设置
-            async function loadSettings() {
-              try {
-                const userId = new URLSearchParams(window.location.search).get('userId')
-                const response = await fetch(\`/api/config/\${userId}\`)
-                const data = await response.json()
+              sections.forEach(function(section) {
+                html.push('  <tr>');
+                html.push('    <td>' + section + '</td>');
                 
-                if (data.code === 0) {
-                  document.getElementById('startDate').value = data.data.base?.startDate || ''
-                  document.getElementById('maxWeek').value = data.data.base?.maxWeek || ''
+                for (let day = 1; day <= 7; day++) {
+                  html.push('    <td>');
+                  const courses = data.courses.filter(function(c) {
+                    return c.weekDay === day && 
+                           c.section === section &&
+                           c.weeks.includes(data.currentWeek);
+                  });
+                  
+                  courses.forEach(function(course) {
+                    html.push('      <div class="course-item">');
+                    html.push('        <div class="course-name">' + course.name + '</div>');
+                    html.push('        <div class="course-info">' + course.teacher + '</div>');
+                    html.push('        <div class="course-info">' + course.location + '</div>');
+                    html.push('      </div>');
+                  });
+                  
+                  html.push('    </td>');
                 }
-              } catch (err) {
-                console.error('加载设置失败:', err)
-              }
-            }
+                
+                html.push('  </tr>');
+              });
 
-            // 添加课程
-            async function addCourse() {
-              // 这里添加课程添加逻辑
-            }
-
-            // 保存设置
-            async function saveSettings() {
-              // 这里添加设置保存逻辑
+              html.push('</table>');
+              document.getElementById('scheduleView').innerHTML = html.join('\\n');
             }
           </script>
         </body>
         </html>
-      `)
-    })
+      `;
+      
+      res.send(html);
+    });
 
     // 获取用户配置
     this.app.get('/api/config/:userId', (req, res) => {
