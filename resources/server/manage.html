@@ -1,501 +1,226 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>课程表管理系统</title>
-    <script src="https://cdn.jsdmirror.cn/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <style>
-        @import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap);
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Poppins, sans-serif
-        }
-        body {
-            background: #f5f5f5;
-            min-height: 100vh;
-        }
-        .header {
-            background: #fff;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        .title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        .schedule {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        .schedule-header {
-            display: grid;
-            grid-template-columns: 80px repeat(7, 1fr);
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .schedule-header div {
-            padding: 0.75rem;
-            text-align: center;
-            font-weight: 500;
-        }
-        .schedule-body {
-            display: grid;
-            grid-template-columns: 80px repeat(7, 1fr);
-        }
-        .schedule-time {
-            padding: 0.75rem;
-            text-align: center;
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            border-bottom: 1px solid #dee2e6;
-        }
-        .schedule-cell {
-            padding: 0.75rem;
-            border-right: 1px solid #dee2e6;
-            border-bottom: 1px solid #dee2e6;
-            min-height: 100px;
-        }
-        .course-item {
-            background: #e3f2fd;
-            border-radius: 4px;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        .course-name {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-        .course-info {
-            color: #666;
-            font-size: 0.75rem;
-        }
-        .toolbar {
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-primary {
-            background: #00d2d6;
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: #00bfc2;
-        }
-        .week-selector {
-            padding: 0.5rem;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            outline: none;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            outline: none;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>课程表管理</title>
+  <link rel="stylesheet" href="/common/common.css">
+  <style>
+    .settings-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .setting-item {
+      margin: 15px 0;
+    }
+    .setting-label {
+      display: block;
+      margin-bottom: 5px;
+      color: #666;
+    }
+    .setting-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .save-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .save-btn:hover {
+      background: #45a049;
+    }
+    .error-msg {
+      color: #f44336;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    .success-msg {
+      color: #4CAF50;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <h1>课程表管理系统</h1>
-        </div>
-    </div>
-    <div class="container">
-        <div class="toolbar">
-            <select class="week-selector" id="weekSelector">
-                <option value="1">第1周</option>
-                <!-- 动态生成周数选项 -->
-            </select>
-            <button class="btn btn-primary" onclick="showAddCourse()">添加课程</button>
-            <button class="btn btn-primary" onclick="showImportCourse()">导入课表</button>
-        </div>
-        <div class="schedule">
-            <div class="schedule-header">
-                <div>节次</div>
-                <div>周一</div>
-                <div>周二</div>
-                <div>周三</div>
-                <div>周四</div>
-                <div>周五</div>
-                <div>周六</div>
-                <div>周日</div>
-            </div>
-            <div class="schedule-body">
-                <!-- 动态生成课表内容 -->
-            </div>
-        </div>
+  <div class="container">
+    <div class="settings-panel">
+      <h2>基础设置</h2>
+      <div class="setting-item">
+        <label class="setting-label">开学日期</label>
+        <input type="date" id="startDate" class="setting-input">
+        <div class="error-msg" id="startDateError"></div>
+      </div>
+      <div class="setting-item">
+        <label class="setting-label">总周数</label>
+        <input type="number" id="maxWeek" class="setting-input" min="1" max="30">
+        <div class="error-msg" id="maxWeekError"></div>
+      </div>
+      <button class="save-btn" onclick="saveSettings()">保存设置</button>
+      <div class="success-msg" id="saveSuccess"></div>
     </div>
 
-    <!-- 添加课程弹窗 -->
-    <div class="modal" id="addCourseModal">
-        <div class="modal-content">
-            <h2 class="title">添加课程</h2>
-            <form id="addCourseForm">
-                <div class="form-group">
-                    <label>课程名称</label>
-                    <input type="text" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>教师</label>
-                    <input type="text" name="teacher">
-                </div>
-                <div class="form-group">
-                    <label>教室</label>
-                    <input type="text" name="room">
-                </div>
-                <div class="form-group">
-                    <label>星期</label>
-                    <select name="day" required>
-                        <option value="1">周一</option>
-                        <option value="2">周二</option>
-                        <option value="3">周三</option>
-                        <option value="4">周四</option>
-                        <option value="5">周五</option>
-                        <option value="6">周六</option>
-                        <option value="7">周日</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>节次</label>
-                    <select name="startNode" required>
-                        <option value="1">第1节</option>
-                        <option value="3">第3节</option>
-                        <option value="5">第5节</option>
-                        <option value="7">第7节</option>
-                        <option value="9">第9节</option>
-                    </select>
-                    <select name="endNode" required>
-                        <option value="2">第2节</option>
-                        <option value="4">第4节</option>
-                        <option value="6">第6节</option>
-                        <option value="8">第8节</option>
-                        <option value="10">第10节</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>周数</label>
-                    <input type="number" name="startWeek" placeholder="开" required>
-                    <input type="number" name="endWeek" placeholder="结束周" required>
-                    <select name="type">
-                        <option value="0">每周</option>
-                        <option value="1">单周</option>
-                        <option value="2">双周</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn" onclick="hideAddCourse()">取消</button>
-                    <button type="submit" class="btn btn-primary">保存</button>
-                </div>
-            </form>
-        </div>
+    <div class="settings-panel">
+      <h2>课程管理</h2>
+      <div class="current-week">
+        当前第 <span id="currentWeek">-</span> 周
+        （共 <span id="totalWeeks">-</span> 周）
+      </div>
+      <div id="courseList"></div>
+      <div class="import-panel">
+        <input type="file" id="importFile" accept=".json,.txt">
+        <button class="save-btn" onclick="importCourses()">导入课程</button>
+      </div>
     </div>
+  </div>
 
-    <!-- 导入课表弹窗 -->
-    <div class="modal" id="importCourseModal">
-        <div class="modal-content">
-            <h2 class="title">导入课表</h2>
-            <form id="importCourseForm">
-                <div class="form-group">
-                    <label>课表数据</label>
-                    <textarea name="courseData" rows="10" placeholder="请粘贴课表数据" required></textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn" onclick="hideImportCourse()">取消</button>
-                    <button type="submit" class="btn btn-primary">导入</button>
-                </div>
-            </form>
-        </div>
-    </div>
+  <script>
+    // 获取用户ID和token
+    const userId = new URLSearchParams(window.location.search).get('userId');
+    
+    // 页面加载时获取配置
+    window.onload = async () => {
+      await loadConfig();
+      await updateCurrentWeek();
+    };
 
-    <script>
-        // 获取token
-        function getToken() {
-            return localStorage.getItem('token');
+    // 加载配置
+    async function loadConfig() {
+      try {
+        const response = await fetch(`/api/config/${userId}`);
+        const result = await response.json();
+        
+        if (result.code === 0) {
+          const config = result.data;
+          document.getElementById('startDate').value = config.base?.startDate || '';
+          document.getElementById('maxWeek').value = config.base?.maxWeek || 16;
+        } else {
+          showError('startDateError', '加载配置失败');
         }
+      } catch (err) {
+        showError('startDateError', '网络错误');
+      }
+    }
 
-        // 检查登录状态
-        function checkLogin() {
-            const token = getToken();
-            if (!token) {
-                window.location.href = '/';
-                return false;
+    // 更新当前周显示
+    async function updateCurrentWeek() {
+      try {
+        const response = await fetch(`/api/currentWeek/${userId}`);
+        const result = await response.json();
+        
+        if (result.code === 0) {
+          document.getElementById('currentWeek').textContent = result.data.currentWeek;
+          document.getElementById('totalWeeks').textContent = result.data.maxWeek;
+        }
+      } catch (err) {
+        console.error('获取当前周失败:', err);
+      }
+    }
+
+    // 保存设置
+    async function saveSettings() {
+      const startDate = document.getElementById('startDate').value;
+      const maxWeek = parseInt(document.getElementById('maxWeek').value);
+      
+      // 验证输入
+      if (!startDate) {
+        return showError('startDateError', '请选择开学日期');
+      }
+      if (!maxWeek || maxWeek < 1 || maxWeek > 30) {
+        return showError('maxWeekError', '请输入1-30之间的周数');
+      }
+
+      try {
+        const response = await fetch(`/api/config/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            base: {
+              startDate,
+              maxWeek
             }
-            return true;
-        }
-
-        // API请求封装
-        async function request(url, options = {}) {
-            const token = getToken();
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': token,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            if (data.code === 401) {
-                localStorage.removeItem('token');
-                window.location.href = '/';
-                return null;
-            }
-            return data;
-        }
-
-        // 初始化周数选择器
-        function initWeekSelector() {
-            const selector = document.getElementById('weekSelector');
-            for (let i = 2; i <= 20; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = `第${i}周`;
-                selector.appendChild(option);
-            }
-        }
-
-        // 初始化课表
-        function initSchedule() {
-            const scheduleBody = document.querySelector('.schedule-body');
-            const sections = ['1-2', '3-4', '5-6', '7-8', '9-10'];
-            
-            sections.forEach(section => {
-                // 添加节次
-                const timeCell = document.createElement('div');
-                timeCell.className = 'schedule-time';
-                timeCell.textContent = section;
-                scheduleBody.appendChild(timeCell);
-
-                // 添加每天的单元格
-                for (let i = 1; i <= 7; i++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'schedule-cell';
-                    cell.dataset.day = i;
-                    cell.dataset.section = section;
-                    scheduleBody.appendChild(cell);
-                }
-            });
-        }
-
-        // 显示添加课程弹窗
-        function showAddCourse() {
-            document.getElementById('addCourseModal').style.display = 'block';
-        }
-
-        // 隐藏添加课程弹窗
-        function hideAddCourse() {
-            document.getElementById('addCourseModal').style.display = 'none';
-        }
-
-        // 显示导入课表弹窗
-        function showImportCourse() {
-            document.getElementById('importCourseModal').style.display = 'block';
-        }
-
-        // 隐藏导入课表弹窗
-        function hideImportCourse() {
-            document.getElementById('importCourseModal').style.display = 'none';
-        }
-
-        // 添加课程
-        document.getElementById('addCourseForm').onsubmit = async function(e) {
-            e.preventDefault();
-            if (!checkLogin()) return;
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            
-            // 转换数据类型
-            data.day = parseInt(data.day);
-            data.startNode = parseInt(data.startNode);
-            data.endNode = parseInt(data.endNode);
-            data.startWeek = parseInt(data.startWeek);
-            data.endWeek = parseInt(data.endWeek);
-            data.type = parseInt(data.type);
-
-            const res = await request('/api/course', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
-
-            if (res?.code === 200) {
-                hideAddCourse();
-                e.target.reset();
-                loadCourses();
-                alert('添加成功');
-            } else {
-                alert(res?.msg || '添加失败');
-            }
-        };
-
-        // 导入课表
-        document.getElementById('importCourseForm').onsubmit = async function(e) {
-            e.preventDefault();
-            if (!checkLogin()) return;
-
-            const formData = new FormData(e.target);
-            const courseData = formData.get('courseData');
-            
-            const res = await request('/api/course/import', {
-                method: 'POST',
-                body: JSON.stringify({ courseData })
-            });
-
-            if (res?.code === 200) {
-                hideImportCourse();
-                e.target.reset();
-                loadCourses();
-                alert(res.msg);
-            } else {
-                alert(res?.msg || '导入失败');
-            }
-        };
-
-        // 加载课程数据
-        async function loadCourses() {
-            if (!checkLogin()) return;
-
-            const week = document.getElementById('weekSelector').value;
-            const res = await request(`/api/course?week=${week}`);
-            
-            if (res?.code === 200) {
-                renderCourses(res.data);
-            } else {
-                alert(res?.msg || '加载失败');
-            }
-        }
-
-        // 渲染课程
-        function renderCourses(courses) {
-            // 清空所有单元格
-            document.querySelectorAll('.schedule-cell').forEach(cell => {
-                cell.innerHTML = '';
-            });
-
-            // 添加课程
-            courses.forEach(course => {
-                const cell = document.querySelector(
-                    `.schedule-cell[data-day="${course.day}"][data-section="${course.startNode}-${course.endNode}"]`
-                );
-                if (cell) {
-                    const courseEl = document.createElement('div');
-                    courseEl.className = 'course-item';
-                    courseEl.innerHTML = `
-                        <div class="course-name">${course.name}</div>
-                        <div class="course-info">${course.teacher}</div>
-                        <div class="course-info">${course.room}</div>
-                    `;
-                    cell.appendChild(courseEl);
-                }
-            });
-        }
-
-        // 获取当前周和日期
-        async function getCurrentWeek() {
-            const res = await request('/api/current');
-            if (res?.code === 200) {
-                const { currentWeek, currentDay, maxWeek } = res.data;
-                
-                // 更新周数选择器
-                const selector = document.getElementById('weekSelector');
-                selector.innerHTML = ''; // 清空现有选项
-                for (let i = 1; i <= maxWeek; i++) {
-                    const option = document.createElement('option');
-                    option.value = i;
-                    option.textContent = `第${i}周`;
-                    if (i === currentWeek) {
-                        option.selected = true;
-                    }
-                    selector.appendChild(option);
-                }
-
-                // 高亮当前日期的列
-                document.querySelectorAll('.schedule-cell').forEach(cell => {
-                    if (parseInt(cell.dataset.day) === currentDay) {
-                        cell.style.backgroundColor = '#f8f9fa';
-                    }
-                });
-
-                return currentWeek;
-            }
-            return 1;
-        }
-
-        // 初始化
-        $(document).ready(async () => {
-            if (!checkLogin()) return;
-            
-            // 初始化课表结构
-            initSchedule();
-            
-            // 获取当前周次并加载课程
-            const currentWeek = await getCurrentWeek();
-            if (currentWeek) {
-                loadCourses();
-            }
+          })
         });
 
-        // 切换周数时重新加载课程
-        document.getElementById('weekSelector').onchange = loadCourses;
-    </script>
+        const result = await response.json();
+        if (result.code === 0) {
+          showSuccess('保存成功');
+          await updateCurrentWeek();
+        } else {
+          showError('startDateError', result.msg);
+        }
+      } catch (err) {
+        showError('startDateError', '保存失败');
+      }
+    }
+
+    // 导入课程
+    async function importCourses() {
+      const fileInput = document.getElementById('importFile');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        return showError('importError', '请选择文件');
+      }
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const courses = JSON.parse(e.target.result);
+            
+            const response = await fetch(`/api/courses/import/${userId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ courses })
+            });
+
+            const result = await response.json();
+            if (result.code === 0) {
+              showSuccess('导入成功');
+              fileInput.value = '';
+            } else {
+              showError('importError', result.msg);
+            }
+          } catch (err) {
+            showError('importError', '文件格式错误');
+          }
+        };
+        reader.readAsText(file);
+      } catch (err) {
+        showError('importError', '读取文件失败');
+      }
+    }
+
+    // 显示错误信息
+    function showError(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      setTimeout(() => {
+        element.textContent = '';
+      }, 3000);
+    }
+
+    // 显示成功信息
+    function showSuccess(message) {
+      const element = document.getElementById('saveSuccess');
+      element.textContent = message;
+      setTimeout(() => {
+        element.textContent = '';
+      }, 3000);
+    }
+  </script>
 </body>
 </html> 
