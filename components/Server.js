@@ -179,4 +179,13 @@ export class Server {
     }
     return true
   }
-} 
+}
+
+const server = new Server()
+
+// 初始化服务器
+server.start().catch(err => {
+    logger.error(`[Class-Plugin] 服务器启动失败: ${err}`)
+})
+
+export { server } 
