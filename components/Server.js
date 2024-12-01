@@ -27,15 +27,6 @@ class Server {
         return res.status(400).send('参数错误：缺少用户ID')
       }
 
-      // 生成登录令牌
-      const token = Math.random().toString(36).substring(2, 15)
-      
-      // 保存令牌信息
-      this.data.set(userId, {
-        token,
-        timestamp: Date.now()
-      })
-
       // 返回登录页面
       res.send(`
         <!DOCTYPE html>
@@ -65,50 +56,86 @@ class Server {
               text-align: center;
               color: #333;
             }
-            .message {
-              text-align: center;
-              margin: 20px 0;
+            .form-group {
+              margin-bottom: 15px;
+            }
+            label {
+              display: block;
+              margin-bottom: 5px;
               color: #666;
             }
-            .auto-login {
+            input {
+              width: 100%;
+              padding: 8px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box;
+            }
+            button {
+              width: 100%;
+              padding: 10px;
+              background: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+            button:hover {
+              background: #45a049;
+            }
+            .error {
+              color: red;
               text-align: center;
-              color: #999;
               margin-top: 10px;
+              display: none;
             }
           </style>
         </head>
         <body>
           <div class="login-container">
             <h2>课表系统登录</h2>
-            <div class="message">正在自动登录中...</div>
-            <div class="auto-login">如果没有自动跳转，请刷新页面</div>
+            <div class="form-group">
+              <label>用户ID</label>
+              <input type="text" id="userId" value="${userId}" readonly>
+            </div>
+            <div class="form-group">
+              <label>登录令牌</label>
+              <input type="text" id="token" placeholder="请输入机器人发送的登录令牌">
+            </div>
+            <button onclick="login()">登录</button>
+            <div id="error" class="error"></div>
           </div>
 
           <script>
-            // 页面加载完成后自动登录
-            window.onload = async function() {
+            async function login() {
               try {
+                const userId = document.getElementById('userId').value
+                const token = document.getElementById('token').value
+
+                if (!token) {
+                  document.getElementById('error').style.display = 'block'
+                  document.getElementById('error').textContent = '请输入登录令牌'
+                  return
+                }
+
                 const response = await fetch('/api/auth', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({
-                    userId: '${userId}',
-                    token: '${token}'
-                  })
+                  body: JSON.stringify({ userId, token })
                 })
                 
                 const data = await response.json()
                 if (data.code === 0) {
                   window.location.href = '/dashboard'
                 } else {
-                  document.querySelector('.message').textContent = data.msg
-                  document.querySelector('.message').style.color = 'red'
+                  document.getElementById('error').style.display = 'block'
+                  document.getElementById('error').textContent = data.msg
                 }
               } catch (err) {
-                document.querySelector('.message').textContent = '登录失败，请稍后重试'
-                document.querySelector('.message').style.color = 'red'
+                document.getElementById('error').style.display = 'block'
+                document.getElementById('error').textContent = '登录失败，请稍后重试'
               }
             }
           </script>
@@ -161,7 +188,7 @@ class Server {
               background: #f5f5f5;
             }
             .container {
-              max-width: 800px;
+              max-width: 1200px;
               margin: 0 auto;
               background: white;
               padding: 20px;
@@ -173,13 +200,277 @@ class Server {
               text-align: center;
               margin-bottom: 20px;
             }
+            .nav {
+              display: flex;
+              gap: 10px;
+              margin-bottom: 20px;
+              padding: 10px;
+              background: #f8f9fa;
+              border-radius: 4px;
+            }
+            .nav-item {
+              padding: 8px 16px;
+              background: #fff;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: all 0.3s;
+            }
+            .nav-item:hover {
+              background: #e9ecef;
+            }
+            .nav-item.active {
+              background: #4CAF50;
+              color: white;
+              border-color: #4CAF50;
+            }
+            .content {
+              padding: 20px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+            }
+            .schedule-table {
+              width: 100%;
+              border-collapse: separate;
+              border-spacing: 4px;
+            }
+            .schedule-table th,
+            .schedule-table td {
+              padding: 8px 4px;
+              font-size: 14px;
+            }
+            .course-item {
+              padding: 6px;
+            }
+            .course-item {
+              background: #e9ecef;
+              padding: 8px;
+              border-radius: 4px;
+              margin-bottom: 5px;
+            }
+            .course-name {
+              font-weight: bold;
+            }
+            .course-info {
+              font-size: 12px;
+              color: #666;
+            }
+            .form-group {
+              margin-bottom: 15px;
+            }
+            label {
+              display: block;
+              margin-bottom: 5px;
+              color: #666;
+            }
+            input, select {
+              width: 100%;
+              padding: 8px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box;
+            }
+            button {
+              padding: 8px 16px;
+              background: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+            button:hover {
+              background: #45a049;
+            }
           </style>
         </head>
         <body>
           <div class="container">
             <h1>课表管理系统</h1>
-            <p style="text-align: center;">登录成功！</p>
+            
+            <div class="nav">
+              <div class="nav-item active" onclick="showTab('schedule')">课表查看</div>
+              <div class="nav-item" onclick="showTab('add')">添加课程</div>
+              <div class="nav-item" onclick="showTab('edit')">课程管理</div>
+              <div class="nav-item" onclick="showTab('settings')">系统设置</div>
+            </div>
+
+            <div id="schedule" class="content">
+              <h2>我的课表</h2>
+              <div id="scheduleView"></div>
+            </div>
+
+            <div id="add" class="content" style="display:none;">
+              <h2>添加课程</h2>
+              <div class="form-group">
+                <label>课程名称</label>
+                <input type="text" id="courseName">
+              </div>
+              <div class="form-group">
+                <label>教师</label>
+                <input type="text" id="teacher">
+              </div>
+              <div class="form-group">
+                <label>教室</label>
+                <input type="text" id="location">
+              </div>
+              <div class="form-group">
+                <label>星期</label>
+                <select id="weekDay">
+                  <option value="1">周一</option>
+                  <option value="2">周二</option>
+                  <option value="3">周三</option>
+                  <option value="4">周四</option>
+                  <option value="5">周五</option>
+                  <option value="6">周六</option>
+                  <option value="7">周日</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>节数</label>
+                <select id="section">
+                  <option value="1-2">1-2节</option>
+                  <option value="3-4">3-4节</option>
+                  <option value="5-6">5-6节</option>
+                  <option value="7-8">7-8节</option>
+                  <option value="9-10">9-10节</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>周数</label>
+                <input type="text" id="weeks" placeholder="例如：1-16或1,3,5,7">
+              </div>
+              <button onclick="addCourse()">添加课程</button>
+            </div>
+
+            <div id="edit" class="content" style="display:none;">
+              <h2>课程管理</h2>
+              <div id="courseList"></div>
+            </div>
+
+            <div id="settings" class="content" style="display:none;">
+              <h2>系统设置</h2>
+              <div class="form-group">
+                <label>开学日期</label>
+                <input type="date" id="startDate">
+              </div>
+              <div class="form-group">
+                <label>学期周数</label>
+                <input type="number" id="maxWeek" min="1" max="30">
+              </div>
+              <button onclick="saveSettings()">保存设置</button>
+            </div>
           </div>
+
+          <script>
+            // 页面加载时获取课表数据
+            window.onload = async function() {
+              await loadSchedule()
+              await loadSettings()
+            }
+
+            // 切换标签页
+            function showTab(tabId) {
+              document.querySelectorAll('.content').forEach(content => {
+                content.style.display = 'none'
+              })
+              document.getElementById(tabId).style.display = 'block'
+              
+              document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active')
+              })
+              event.target.classList.add('active')
+            }
+
+            // 加载课表
+            async function loadSchedule() {
+              try {
+                const userId = new URLSearchParams(window.location.search).get('userId')
+                const response = await fetch(\`/api/config/\${userId}\`)
+                const data = await response.json()
+                
+                if (data.code === 0) {
+                  renderSchedule(data.data)
+                }
+              } catch (err) {
+                console.error('加载课表失败:', err)
+              }
+            }
+
+            // 渲染课表
+            function renderSchedule(data) {
+              const sections = ['1-2', '3-4', '5-6', '7-8', '9-10']
+              let scheduleHtml = `
+                <div style="margin-bottom: 10px">
+                  <span>当前第 ${data.currentWeek} 周</span>
+                </div>
+                <table class="schedule-table">
+                  <tr>
+                    <th>节次</th>
+                    <th>周一</th>
+                    <th>周二</th>
+                    <th>周三</th>
+                    <th>周四</th>
+                    <th>周五</th>
+                    <th>周六</th>
+                    <th>周日</th>
+                  </tr>
+              `
+
+              sections.forEach(section => {
+                scheduleHtml += `<tr><td>${section}</td>`
+                // 修改为1-7,包含周六周日
+                for (let day = 1; day <= 7; day++) {
+                  const courses = data.courses.filter(c => 
+                    c.weekDay === day && 
+                    c.section === section &&
+                    c.weeks.includes(data.currentWeek)
+                  )
+                  
+                  scheduleHtml += `<td>`
+                  courses.forEach(course => {
+                    scheduleHtml += `
+                      <div class="course-item">
+                        <div class="course-name">${course.name}</div>
+                        <div class="course-info">${course.teacher}</div>
+                        <div class="course-info">${course.location}</div>
+                      </div>
+                    `
+                  })
+                  scheduleHtml += `</td>`
+                }
+                scheduleHtml += `</tr>`
+              })
+
+              scheduleHtml += `</table>`
+              document.getElementById('scheduleView').innerHTML = scheduleHtml
+            }
+
+            // 加载设置
+            async function loadSettings() {
+              try {
+                const userId = new URLSearchParams(window.location.search).get('userId')
+                const response = await fetch(\`/api/config/\${userId}\`)
+                const data = await response.json()
+                
+                if (data.code === 0) {
+                  document.getElementById('startDate').value = data.data.base?.startDate || ''
+                  document.getElementById('maxWeek').value = data.data.base?.maxWeek || ''
+                }
+              } catch (err) {
+                console.error('加载设置失败:', err)
+              }
+            }
+
+            // 添加课程
+            async function addCourse() {
+              // 这里添加课程添加逻辑
+            }
+
+            // 保存设置
+            async function saveSettings() {
+              // 这里添加设置保存逻辑
+            }
+          </script>
         </body>
         </html>
       `)
@@ -287,6 +578,152 @@ class Server {
         })
       } catch (err) {
         logger.mark(`[Class-Plugin] 获取当前周失败: ${err}`)
+        res.json({ code: 500, msg: '服务器错���' })
+      }
+    })
+
+    // 获取课表数据
+    this.app.get('/api/schedule/:userId', (req, res) => {
+      try {
+        const { userId } = req.params
+        const config = Config.getUserConfig(userId)
+        if (!config) {
+          return res.json({ code: 404, msg: '未找到课表数据' })
+        }
+        res.json({ 
+          code: 0, 
+          data: {
+            courses: config.courses || [],
+            base: config.base || {},
+            currentWeek: Utils.getCurrentWeek(config.base?.startDate)
+          }
+        })
+      } catch (err) {
+        logger.mark(`[Class-Plugin] 获取课表失败: ${err}`)
+        res.json({ code: 500, msg: '服务器错误' })
+      }
+    })
+
+    // 添加课程
+    this.app.post('/api/course/:userId', (req, res) => {
+      try {
+        const { userId } = req.params
+        const courseData = req.body
+        
+        // 验证课程数据
+        if (!courseData.name || !courseData.teacher || !courseData.location || 
+            !courseData.weekDay || !courseData.section || !courseData.weeks) {
+          return res.json({ code: 400, msg: '课程信息不完整' })
+        }
+
+        // 验证星期
+        const weekDay = Number(courseData.weekDay)
+        if (!Number.isInteger(weekDay) || weekDay < 1 || weekDay > 7) {
+          return res.json({ code: 400, msg: '无效的星期' })
+        }
+
+        // 处理周数数据
+        let weeks = []
+        if (typeof courseData.weeks === 'string') {
+          // 处理类似 "1-16" 的格式
+          if (courseData.weeks.includes('-')) {
+            const [start, end] = courseData.weeks.split('-').map(Number)
+            for (let i = start; i <= end; i++) weeks.push(i)
+          } 
+          // 处理类似 "1,3,5,7" 的格式
+          else {
+            weeks = courseData.weeks.split(',').map(Number)
+          }
+        }
+
+        const config = Config.getUserConfig(userId)
+        if (!config.courses) config.courses = []
+
+        // 检查时间冲突
+        const hasConflict = config.courses.some(course => 
+          course.weekDay === Number(courseData.weekDay) &&
+          course.section === courseData.section &&
+          course.weeks.some(w => weeks.includes(w))
+        )
+
+        if (hasConflict) {
+          return res.json({ code: 400, msg: '该时间段已有课程' })
+        }
+
+        // 添加新课程
+        const newCourse = {
+          id: Date.now().toString(),
+          name: courseData.name,
+          teacher: courseData.teacher,
+          location: courseData.location,
+          weekDay: Number(courseData.weekDay),
+          section: courseData.section,
+          weeks
+        }
+
+        config.courses.push(newCourse)
+
+        if (Config.setUserConfig(userId, config)) {
+          res.json({ code: 0, msg: '添加成功', data: newCourse })
+        } else {
+          res.json({ code: 500, msg: '保存失败' })
+        }
+      } catch (err) {
+        logger.mark(`[Class-Plugin] 添加课程失败: ${err}`)
+        res.json({ code: 500, msg: '服务器错误' })
+      }
+    })
+
+    // 删除课程
+    this.app.delete('/api/course/:userId/:courseId', (req, res) => {
+      try {
+        const { userId, courseId } = req.params
+        const config = Config.getUserConfig(userId)
+        
+        const index = config.courses.findIndex(c => c.id === courseId)
+        if (index === -1) {
+          return res.json({ code: 404, msg: '未找到课程' })
+        }
+
+        config.courses.splice(index, 1)
+
+        if (Config.setUserConfig(userId, config)) {
+          res.json({ code: 0, msg: '删除成功' })
+        } else {
+          res.json({ code: 500, msg: '删除失败' })
+        }
+      } catch (err) {
+        logger.mark(`[Class-Plugin] 删除课程失败: ${err}`)
+        res.json({ code: 500, msg: '服务器错误' })
+      }
+    })
+
+    // 修改课程
+    this.app.put('/api/course/:userId/:courseId', (req, res) => {
+      try {
+        const { userId, courseId } = req.params
+        const courseData = req.body
+        
+        const config = Config.getUserConfig(userId)
+        const courseIndex = config.courses.findIndex(c => c.id === courseId)
+        
+        if (courseIndex === -1) {
+          return res.json({ code: 404, msg: '未找到课程' })
+        }
+
+        // 更新课程数据
+        config.courses[courseIndex] = {
+          ...config.courses[courseIndex],
+          ...courseData
+        }
+
+        if (Config.setUserConfig(userId, config)) {
+          res.json({ code: 0, msg: '修改成功' })
+        } else {
+          res.json({ code: 500, msg: '修改失败' })
+        }
+      } catch (err) {
+        logger.mark(`[Class-Plugin] 修改课程失败: ${err}`)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })

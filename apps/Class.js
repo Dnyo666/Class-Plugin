@@ -59,13 +59,24 @@ export class Class extends plugin {
   async login(e) {
     try {
       const userId = e.user_id
+      // 生成登录令牌
+      const token = Math.random().toString(36).substring(2, 15)
+      
+      // 保存令牌信息
+      server.data.set(userId, {
+        token,
+        timestamp: Date.now()
+      })
+
       // 生成登录链接
       const loginUrl = `http://localhost:3000/login?userId=${userId}`
       
       await e.reply([
         '课表管理系统登录\n',
+        `登录令牌：${token}\n`,
         `请点击链接登录：${loginUrl}\n`,
-        '链接有效期为10分钟'
+        '复制令牌后在登录页面输入即可完成登录\n',
+        '令牌有效期为10分钟'
       ].join(''))
 
       return true
