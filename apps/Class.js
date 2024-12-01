@@ -2,9 +2,8 @@ import plugin from '../../../lib/plugins/plugin.js'
 import { Config } from '../model/config.js'
 import Utils from '../utils.js'
 import { Render } from '../model/render.js'
-import { Server } from '../components/Server.js'
-import moment from 'moment'
 import { server } from '../components/Server.js'
+import moment from 'moment'
 
 let tempCourseData = new Map() // 临时存储用户的课程数据
 
@@ -59,7 +58,7 @@ export class Class extends plugin {
   // 登录功能
   async login(e) {
     try {
-      const verifyCode = Server.generateVerifyCode()
+      const verifyCode = Math.random().toString(36).substring(2, 8).toUpperCase()
       const userId = e.user_id
 
       // 生成登录链接
@@ -452,7 +451,7 @@ export class Class extends plugin {
       return true
     } catch(err) {
       logger.mark(`[Class-Plugin] 取消调课失败: ${err}`)
-      await e.reply('取消调课失败，请稍后重试')
+      await e.reply('取消调课失���，请稍后重试')
       return true
     }
   }

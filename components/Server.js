@@ -5,7 +5,7 @@ import { Config } from '../model/config.js'
 import bodyParser from 'body-parser'
 import moment from 'moment'
 
-export class Server {
+class Server {
   constructor(port = 3000) {
     this.app = express()
     this.port = port
@@ -181,6 +181,7 @@ export class Server {
   }
 }
 
+// 创建单例实例
 const server = new Server()
 
 // 初始化服务器
@@ -188,4 +189,4 @@ server.start().catch(err => {
     logger.error(`[Class-Plugin] 服务器启动失败: ${err}`)
 })
 
-export { Server, server } 
+export { server } 
