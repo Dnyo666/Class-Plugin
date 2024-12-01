@@ -399,26 +399,25 @@ class Server {
             // 渲染课表
             function renderSchedule(data) {
               const sections = ['1-2', '3-4', '5-6', '7-8', '9-10']
-              let scheduleHtml = `
-                <div style="margin-bottom: 10px">
-                  <span>当前第 ${data.currentWeek} 周</span>
-                </div>
-                <table class="schedule-table">
-                  <tr>
-                    <th>节次</th>
-                    <th>周一</th>
-                    <th>周二</th>
-                    <th>周三</th>
-                    <th>周四</th>
-                    <th>周五</th>
-                    <th>周六</th>
-                    <th>周日</th>
-                  </tr>
-              `
+              let scheduleHtml = [
+                '<div style="margin-bottom: 10px">',
+                `  <span>当前第 ${data.currentWeek} 周</span>`,
+                '</div>',
+                '<table class="schedule-table">',
+                '  <tr>',
+                '    <th>节次</th>',
+                '    <th>周一</th>',
+                '    <th>周二</th>',
+                '    <th>周三</th>',
+                '    <th>周四</th>',
+                '    <th>周五</th>',
+                '    <th>周六</th>',
+                '    <th>周日</th>',
+                '  </tr>'
+              ].join('\n')
 
               sections.forEach(section => {
                 scheduleHtml += `<tr><td>${section}</td>`
-                // 修改为1-7,包含周六周日
                 for (let day = 1; day <= 7; day++) {
                   const courses = data.courses.filter(c => 
                     c.weekDay === day && 
@@ -426,22 +425,22 @@ class Server {
                     c.weeks.includes(data.currentWeek)
                   )
                   
-                  scheduleHtml += `<td>`
+                  scheduleHtml += '<td>'
                   courses.forEach(course => {
-                    scheduleHtml += `
-                      <div class="course-item">
-                        <div class="course-name">${course.name}</div>
-                        <div class="course-info">${course.teacher}</div>
-                        <div class="course-info">${course.location}</div>
-                      </div>
-                    `
+                    scheduleHtml += [
+                      '<div class="course-item">',
+                      `  <div class="course-name">${course.name}</div>`,
+                      `  <div class="course-info">${course.teacher}</div>`,
+                      `  <div class="course-info">${course.location}</div>`,
+                      '</div>'
+                    ].join('\n')
                   })
-                  scheduleHtml += `</td>`
+                  scheduleHtml += '</td>'
                 }
-                scheduleHtml += `</tr>`
+                scheduleHtml += '</tr>'
               })
 
-              scheduleHtml += `</table>`
+              scheduleHtml += '</table>'
               document.getElementById('scheduleView').innerHTML = scheduleHtml
             }
 
@@ -578,7 +577,7 @@ class Server {
         })
       } catch (err) {
         logger.mark(`[Class-Plugin] 获取当前周失败: ${err}`)
-        res.json({ code: 500, msg: '服务器错���' })
+        res.json({ code: 500, msg: '服务器错误' })
       }
     })
 
