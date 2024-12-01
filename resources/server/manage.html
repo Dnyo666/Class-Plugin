@@ -233,7 +233,7 @@
                 </div>
                 <div class="form-group">
                     <label>周数</label>
-                    <input type="number" name="startWeek" placeholder="开��周" required>
+                    <input type="number" name="startWeek" placeholder="开周" required>
                     <input type="number" name="endWeek" placeholder="结束周" required>
                     <select name="type">
                         <option value="0">每周</option>
@@ -267,6 +267,47 @@
     </div>
 
     <script>
+        // 获取token
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        // 设置token
+        function setToken(token) {
+            localStorage.setItem('token', token);
+        }
+
+        // 检查登录状态
+        function checkLogin() {
+            const token = getToken();
+            if (!token) {
+                alert('请先登录');
+                window.location.href = '/';
+                return false;
+            }
+            return true;
+        }
+
+        // API请求封装
+        async function request(url, options = {}) {
+            const token = getToken();
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (data.code === 401) {
+                alert('请先登录');
+                window.location.href = '/';
+                return null;
+            }
+            return data;
+        }
+
         // 初始化周数选择器
         function initWeekSelector() {
             const selector = document.getElementById('weekSelector');
@@ -322,68 +363,59 @@
         }
 
         // 添加课程
-        document.getElementById('addCourseForm').onsubmit = function(e) {
+        document.getElementById('addCourseForm').onsubmit = async function(e) {
             e.preventDefault();
+            if (!checkLogin()) return;
+
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             
-            fetch('/api/course', {
+            const res = await request('/api/course', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.code === 200) {
-                    hideAddCourse();
-                    loadCourses();
-                } else {
-                    alert(res.msg);
-                }
-            })
-            .catch(err => alert('添加失败：' + err.message));
+            });
+
+            if (res?.code === 200) {
+                hideAddCourse();
+                loadCourses();
+            } else {
+                alert(res?.msg || '添加失败');
+            }
         };
 
         // 导入课表
-        document.getElementById('importCourseForm').onsubmit = function(e) {
+        document.getElementById('importCourseForm').onsubmit = async function(e) {
             e.preventDefault();
+            if (!checkLogin()) return;
+
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             
-            fetch('/api/course/import', {
+            const res = await request('/api/course/import', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.code === 200) {
-                    hideImportCourse();
-                    loadCourses();
-                } else {
-                    alert(res.msg);
-                }
-            })
-            .catch(err => alert('导入失败：' + err.message));
+            });
+
+            if (res?.code === 200) {
+                hideImportCourse();
+                loadCourses();
+            } else {
+                alert(res?.msg || '导入失败');
+            }
         };
 
         // 加载课程数据
-        function loadCourses() {
+        async function loadCourses() {
+            if (!checkLogin()) return;
+
             const week = document.getElementById('weekSelector').value;
-            fetch(`/api/course?week=${week}`)
-                .then(res => res.json())
-                .then(res => {
-                    if (res.code === 200) {
-                        renderCourses(res.data);
-                    } else {
-                        alert(res.msg);
-                    }
-                })
-                .catch(err => alert('加载失败：' + err.message));
+            const res = await request(`/api/course?week=${week}`);
+            
+            if (res?.code === 200) {
+                renderCourses(res.data);
+            } else {
+                alert(res?.msg || '加载失败');
+            }
         }
 
         // 渲染课程
@@ -412,9 +444,12 @@
         }
 
         // 初始化
-        initWeekSelector();
-        initSchedule();
-        loadCourses();
+        $(document).ready(() => {
+            if (!checkLogin()) return;
+            initWeekSelector();
+            initSchedule();
+            loadCourses();
+        });
 
         // 切换周数时重新加载课程
         document.getElementById('weekSelector').onchange = loadCourses;

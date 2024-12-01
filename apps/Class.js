@@ -57,13 +57,38 @@ export class Class extends plugin {
 
   // 登录功能
   async login(e) {
+    const verifyCode = Server.generateVerifyCode();
+    Server.data[e.user_id] = {
+      user_id: e.user_id,
+      verify_code: verifyCode,
+      created_at: Date.now()
+    };
+
     await e.reply([
       '请复制登录地址到浏览器打开：',
       `http://localhost:3000/login/${e.user_id}`,
-      '登录地址10分钟内有效'
+      `您的识别码为：${verifyCode}`,
+      '登录地址和识别码10分钟内有效'
     ].join('\n'));
 
-    return true;
+    // 等待token生成
+    const timeout = Date.now() + 10 * 60 * 1000;
+    while (!Server.data[e.user_id]?.token && Date.now() < timeout) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    if (!Server.data[e.user_id]?.token) {
+      delete Server.data[e.user_id];
+      return await e.reply('在线登录超时，请重新登录');
+    }
+
+    // 保存用户token
+    let userData = Config.getUserConfig(e.user_id);
+    if (!userData) userData = {};
+    userData.token = Server.data[e.user_id].token;
+    Config.setUserConfig(e.user_id, userData);
+
+    return await e.reply('登录成功！现在您可以在网页上管理您的课表了');
   }
 
   // 初始化检查
@@ -300,7 +325,7 @@ export class Class extends plugin {
           `🗓️ 周数：${weeks}`
         ].join('\n'))
       } else {
-        throw new Error('保存课程数据失败')
+        throw new Error('保存课程数���失败')
       }
 
       return true

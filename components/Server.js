@@ -15,6 +15,16 @@ class Server {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
+    authMiddleware(req, res, next) {
+        const token = req.headers.authorization;
+        const userId = this.getUserIdFromToken(token);
+        if (!userId) {
+            return res.status(401).json({ code: 401, msg: '请先登录' });
+        }
+        req.userId = userId;
+        next();
+    }
+
     async init() {
         this.app.use(express.json());
         await this.checkServer();
@@ -25,18 +35,15 @@ class Server {
 
         this.app.get('/login/:userId', async (req, res) => {
             const userId = req.params.userId;
-            const verifyCode = this.generateVerifyCode();
-            
-            this.data[userId] = {
-                user_id: userId,
-                verify_code: verifyCode,
-                created_at: Date.now()
-            };
+            const userData = this.data[userId];
+
+            if (!userData) {
+                return res.status(404).send('链接无效或已过期');
+            }
 
             try {
                 let data = await fs.readFile(pluginResources + '/server/login.html', 'utf8');
                 res.setHeader('Content-Type', 'text/html');
-                data = data.replace('VERIFY_CODE', verifyCode);
                 res.send(data);
             } catch (error) {
                 console.error(`发送登录页失败：\n${error}`);
@@ -68,7 +75,11 @@ class Server {
 
             try {
                 userData.token = `${userId}_${Date.now()}`;
-                return res.status(200).json({ code: 200, msg: '登录成功' });
+                return res.status(200).json({ 
+                    code: 200, 
+                    msg: '登录成功',
+                    data: { token: userData.token }
+                });
             } catch (error) {
                 console.error(`登录失败：\n${error}`);
                 return res.status(200).json({ code: 400, msg: error.message });
@@ -86,15 +97,10 @@ class Server {
             }
         });
 
-        this.app.get('/api/course', (req, res) => {
+        this.app.get('/api/course', this.authMiddleware.bind(this), (req, res) => {
             const { week } = req.query;
-            const userId = this.getUserIdFromToken(req.headers.authorization);
-            if (!userId) {
-                return res.json({ code: 401, msg: '请先登录' });
-            }
-
             try {
-                const userData = Config.getUserConfig(userId);
+                const userData = Config.getUserConfig(req.userId);
                 const courses = userData.courses.filter(course => {
                     return course.startWeek <= week && course.endWeek >= week &&
                         (course.type === 0 || 
@@ -108,18 +114,13 @@ class Server {
             }
         });
 
-        this.app.post('/api/course', (req, res) => {
-            const userId = this.getUserIdFromToken(req.headers.authorization);
-            if (!userId) {
-                return res.json({ code: 401, msg: '请先登录' });
-            }
-
+        this.app.post('/api/course', this.authMiddleware.bind(this), (req, res) => {
             try {
                 const course = req.body;
-                const userData = Config.getUserConfig(userId);
+                const userData = Config.getUserConfig(req.userId);
                 course.id = Date.now().toString();
                 userData.courses.push(course);
-                Config.setUserConfig(userId, userData);
+                Config.setUserConfig(req.userId, userData);
                 res.json({ code: 200, msg: '添加成功' });
             } catch (error) {
                 console.error(`添加课程失败：\n${error}`);
@@ -127,12 +128,7 @@ class Server {
             }
         });
 
-        this.app.post('/api/course/import', (req, res) => {
-            const userId = this.getUserIdFromToken(req.headers.authorization);
-            if (!userId) {
-                return res.json({ code: 401, msg: '请先登录' });
-            }
-
+        this.app.post('/api/course/import', this.authMiddleware.bind(this), (req, res) => {
             try {
                 const { courseData } = req.body;
                 // TODO: 实现课表导入逻辑
