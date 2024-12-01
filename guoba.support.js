@@ -1,33 +1,25 @@
-import fs from 'fs'
+import { Config } from './model/config.js'
 import path from 'path'
+import fs from 'fs'
 import moment from 'moment'
 import lodash from 'lodash'
-import { Config } from './model/config.js'
-
-const _path = process.cwd()
-const pluginPath = _path + '/plugins/class-plugin'
 
 export function supportGuoba() {
-  let allGroup = []
-  Bot.gl.forEach((v, k) => {
-    allGroup.push({ label: `${v.group_name}(${k})`, value: k })
-  })
-
   return {
     pluginInfo: {
       name: 'class-plugin',
       title: '课表插件',
-      author: '@Dnyo666',
+      author: '@Dnyo666 @YXC0915',
       authorLink: 'https://github.com/Dnyo666',
       link: 'https://github.com/Dnyo666/class-plugin',
       isV3: true,
       isV2: false,
+      showInMenu: true,
       description: '课表管理插件',
       icon: 'mdi:calendar-clock',
-      iconColor: '#7c68ee',
-      iconPath: path.join(pluginPath, "resources/icon.png")
+      iconColor: '#7c99ea',
+      iconPath: path.join(process.cwd(), 'plugins/class-plugin/resources/help/imgs/icon.png')
     },
-    
     configInfo: {
       schemas: [
         {
@@ -38,7 +30,7 @@ export function supportGuoba() {
           bottomHelpMessage: '选择要配置的用户',
           componentProps: {
             options: (() => {
-              const dataDir = path.join(_path, 'data/class-plugin/data')
+              const dataDir = path.join(process.cwd(), 'data/class-plugin/data')
               if (!fs.existsSync(dataDir)) return []
               return fs.readdirSync(dataDir)
                 .filter(f => f.endsWith('.json'))
@@ -51,74 +43,49 @@ export function supportGuoba() {
         },
         {
           component: 'Divider',
-          label: '基础设置'
+          label: '基础设置',
+          componentProps: {
+            orientation: 'left',
+            plain: true
+          }
         },
         {
           field: 'base.startDate',
           label: '开学日期',
+          bottomHelpMessage: '设置学期开始日期',
           component: 'DatePicker',
           required: true,
-          bottomHelpMessage: '设置学期开始日期',
           componentProps: {
             format: 'YYYY-MM-DD',
-            valueFormat: 'YYYY-MM-DD'
+            valueFormat: 'YYYY-MM-DD',
+            placeholder: '请选择开学日期'
           }
         },
         {
           field: 'base.maxWeek',
           label: '学期周数',
+          bottomHelpMessage: '设置学期总周数（通常为16-18周）',
           component: 'InputNumber',
           required: true,
-          bottomHelpMessage: '设置学期总周数',
           componentProps: {
             min: 1,
-            max: 30
+            max: 30,
+            placeholder: '请输入学期周数'
           }
         },
         {
           component: 'Divider',
-          label: '提醒设置'
-        },
-        {
-          field: 'remind.enable',
-          label: '开启提醒',
-          component: 'Switch',
-          bottomHelpMessage: '是否开启课程提醒功能'
-        },
-        {
-          field: 'remind.advance',
-          label: '提前提醒时间',
-          component: 'InputNumber',
-          bottomHelpMessage: '上课前多少分钟提醒',
+          label: '课程管理',
           componentProps: {
-            min: 1,
-            max: 60,
-            addonAfter: '分钟'
-          },
-          vIf: ({ values }) => values.remind?.enable
-        },
-        {
-          field: 'remind.mode',
-          label: '提醒方式',
-          component: 'Select',
-          bottomHelpMessage: '选择提醒消息的发送方式',
-          componentProps: {
-            options: [
-              { label: '私聊提醒', value: 'private' },
-              { label: '群聊提醒', value: 'group' }
-            ]
-          },
-          vIf: ({ values }) => values.remind?.enable
-        },
-        {
-          component: 'Divider',
-          label: '课程管理'
+            orientation: 'left',
+            plain: true
+          }
         },
         {
           field: 'courses',
           label: '课程列表',
-          component: 'GSubForm',
           bottomHelpMessage: '管理所有课程信息',
+          component: 'GSubForm',
           componentProps: {
             multiple: true,
             schemas: [
@@ -127,28 +94,33 @@ export function supportGuoba() {
                 label: '课程名称',
                 component: 'Input',
                 required: true,
-                bottomHelpMessage: '输入课程名称'
+                componentProps: {
+                  placeholder: '请输入课程名称'
+                }
               },
               {
                 field: 'teacher',
                 label: '教师',
                 component: 'Input',
                 required: true,
-                bottomHelpMessage: '输入教师姓名'
+                componentProps: {
+                  placeholder: '请输入教师姓名'
+                }
               },
               {
                 field: 'location',
                 label: '教室',
                 component: 'Input',
                 required: true,
-                bottomHelpMessage: '输入上课地点'
+                componentProps: {
+                  placeholder: '请输入上课地点'
+                }
               },
               {
                 field: 'weekDay',
                 label: '星期',
                 component: 'Select',
                 required: true,
-                bottomHelpMessage: '选择上课星期',
                 componentProps: {
                   options: [
                     { label: '周一', value: 1 },
@@ -166,7 +138,6 @@ export function supportGuoba() {
                 label: '节数',
                 component: 'Select',
                 required: true,
-                bottomHelpMessage: '选择上课节数',
                 componentProps: {
                   options: [
                     { label: '1-2节', value: '1-2' },
@@ -188,8 +159,6 @@ export function supportGuoba() {
                   options: [
                     { label: '单周', value: 'odd', group: '快速选择' },
                     { label: '双周', value: 'even', group: '快速选择' },
-                    { label: '工作日', value: '1-5', group: '快速选择' },
-                    { label: '周末', value: '6-7', group: '快速选择' },
                     ...Array.from({ length: 30 }, (_, i) => ({
                       label: `第${i + 1}周`,
                       value: i + 1,
@@ -207,13 +176,6 @@ export function supportGuoba() {
                           case 'even':
                             for (let i = 2; i <= 30; i += 2) weeks.add(i)
                             break
-                          case '1-5':
-                            for (let i = 1; i <= 5; i++) weeks.add(i)
-                            break
-                          case '6-7':
-                            weeks.add(6)
-                            weeks.add(7)
-                            break
                         }
                       } else {
                         weeks.add(v)
@@ -227,9 +189,8 @@ export function supportGuoba() {
           }
         }
       ],
-
       getConfigData() {
-        const dataDir = path.join(_path, 'data/class-plugin/data')
+        const dataDir = path.join(process.cwd(), 'data/class-plugin/data')
         if (!fs.existsSync(dataDir)) return {}
 
         const files = fs.readdirSync(dataDir)
@@ -243,19 +204,14 @@ export function supportGuoba() {
               if (userData) {
                 config[userId] = {
                   base: {
-                    startDate: userData.base?.startDate || moment().format('YYYY-MM-DD'),
+                    startDate: userData.base?.startDate ? moment(userData.base.startDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
                     maxWeek: Number(userData.base?.maxWeek || 16)
                   },
                   courses: (userData.courses || []).map(course => ({
                     ...course,
                     weekDay: Number(course.weekDay),
                     weeks: course.weeks?.map(w => Number(w)) || []
-                  })),
-                  remind: {
-                    enable: Boolean(userData.remind?.enable),
-                    advance: Number(userData.remind?.advance || 10),
-                    mode: userData.remind?.mode || 'private'
-                  }
+                  }))
                 }
               }
             } catch (err) {
@@ -268,34 +224,31 @@ export function supportGuoba() {
 
       setConfigData(data, { Result }) {
         try {
-          for (let [userId, userData] of Object.entries(data)) {
-            if (userId === 'userId') continue
-            
-            // 验证并格式化数据
-            const config = {
-              base: {
-                startDate: moment(userData.base?.startDate).format('YYYY-MM-DD'),
-                maxWeek: Number(userData.base?.maxWeek || 16)
-              },
-              courses: (userData.courses || []).map(course => ({
-                id: course.id || Date.now().toString(),
-                name: String(course.name || ''),
-                teacher: String(course.teacher || ''),
-                location: String(course.location || ''),
-                weekDay: Number(course.weekDay),
-                section: String(course.section || ''),
-                weeks: (course.weeks || []).map(w => Number(w)).sort((a, b) => a - b)
-              })),
-              remind: {
-                enable: Boolean(userData.remind?.enable),
-                advance: Number(userData.remind?.advance || 10),
-                mode: String(userData.remind?.mode || 'private')
-              }
-            }
-
-            Config.setUserConfig(userId, config)
+          const userId = data.userId
+          if (!userId) {
+            return Result.error('请选择用户')
           }
-          return Result.ok({}, '保存成功')
+
+          // 验证并格式化数据
+          const config = {
+            base: {
+              startDate: moment(data.base?.startDate).format('YYYY-MM-DD'),
+              maxWeek: Number(data.base?.maxWeek || 16)
+            },
+            courses: (data.courses || []).map(course => ({
+              id: course.id || Date.now().toString(),
+              name: String(course.name || ''),
+              teacher: String(course.teacher || ''),
+              location: String(course.location || ''),
+              weekDay: Number(course.weekDay),
+              section: String(course.section || ''),
+              weeks: (course.weeks || []).map(w => Number(w)).sort((a, b) => a - b)
+            }))
+          }
+
+          // 保存配置
+          Config.setUserConfig(userId, config)
+          return Result.ok({}, '保存成功~')
         } catch (err) {
           console.error('[Class-Plugin] 保存配置失败:', err)
           return Result.error('保存失败：' + err.message)

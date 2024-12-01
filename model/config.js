@@ -1,11 +1,13 @@
-import fs from 'node:fs'
+import fs from 'fs'
 import path from 'path'
 import moment from 'moment'
+import lodash from 'lodash'
 
 const _path = process.cwd()
 
 export class Config {
   static dataDir = path.join(_path, 'data/class-plugin/data')
+  static tempDir = path.join(_path, 'data/class-plugin/temp')
   static defaultConfig = {
     base: {
       startDate: moment().format('YYYY-MM-DD'),
@@ -24,6 +26,9 @@ export class Config {
       // 确保数据目录存在
       if (!fs.existsSync(this.dataDir)) {
         fs.mkdirSync(this.dataDir, { recursive: true })
+      }
+      if (!fs.existsSync(this.tempDir)) {
+        fs.mkdirSync(this.tempDir, { recursive: true })
       }
       logger.info('[Class-Plugin] 数据目录初始化成功')
     } catch (err) {
@@ -49,10 +54,38 @@ export class Config {
     try {
       const filePath = path.join(this.dataDir, `${userId}.json`)
       const validConfig = this.validateConfig(config)
+      
+      // 如果是初始化配置，检查是否有临时数据需要迁移
+      if (!config.base?.startDate || !config.base?.maxWeek) {
+        const tempPath = path.join(this.tempDir, `${userId}.json`)
+        if (fs.existsSync(tempPath)) {
+          try {
+            const tempData = JSON.parse(fs.readFileSync(tempPath, 'utf8'))
+            if (tempData.courses?.length) {
+              validConfig.courses = tempData.courses
+            }
+            fs.unlinkSync(tempPath)
+          } catch (err) {
+            logger.error(`[Class-Plugin] 迁移临时数据失败: ${err}`)
+          }
+        }
+      }
+
       fs.writeFileSync(filePath, JSON.stringify(validConfig, null, 2))
       return true
     } catch (err) {
       logger.error(`[Class-Plugin] 保存用户配置失败: ${err}`)
+      return false
+    }
+  }
+
+  static saveTempData(userId, data) {
+    try {
+      const tempPath = path.join(this.tempDir, `${userId}.json`)
+      fs.writeFileSync(tempPath, JSON.stringify(data, null, 2))
+      return true
+    } catch (err) {
+      logger.error(`[Class-Plugin] 保存临时数据失败: ${err}`)
       return false
     }
   }

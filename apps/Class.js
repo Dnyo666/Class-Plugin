@@ -4,6 +4,8 @@ import Utils from '../utils.js'
 import { Render } from '../model/render.js'
 import moment from 'moment'
 
+let tempCourseData = new Map() // 临时存储用户的课程数据
+
 export class Class extends plugin {
   constructor() {
     super({
@@ -52,41 +54,71 @@ export class Class extends plugin {
   async checkInit(e) {
     const config = Config.getUserConfig(e.user_id)
     if (!config?.base?.startDate || !config?.base?.maxWeek) {
-        await e.reply([
-            '⚠️ 请先完成课表初始化配置',
-            '使用 #开始配置课表 开始设置',
-            '',
-            '您需要设置：',
-            '1. 开学日期',
-            '2. 学期周数'
-        ].join('\n'))
-        return false
+      // 存储当前操作的课程数据
+      if (e.msg.includes('添加课程')) {
+        const courseData = e.msg.replace(/^#?(添加|新增)课程\s*/, '')
+        tempCourseData.set(e.user_id, courseData)
+      }
+
+      await e.reply([
+        '⚠️ 检测到您还未完成课表初始化配置',
+        '请按以下步骤进行设置：',
+        '',
+        '1. 设置开学日期',
+        '发送: #设置开学日期 2024-02-26',
+        '',
+        '2. 设置学期周数',
+        '发送: #设置学期周数 16',
+        '',
+        '完成设置后，您之前添加的课程将自动导入'
+      ].join('\n'))
+      return false
     }
+
+    // 检查是否有临时存储的课程数据需要导入
+    const tempData = tempCourseData.get(e.user_id)
+    if (tempData) {
+      try {
+        // 构造添加课程的消息
+        e.msg = `#添加课程 ${tempData}`
+        await this.addSchedule(e)
+        tempCourseData.delete(e.user_id)
+      } catch (err) {
+        logger.error(`[Class-Plugin] 导入临时课程数据失败: ${err}`)
+      }
+    }
+
     return true
   }
 
   // 查看课表
   async viewSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const userData = Config.getUserConfig(e.user_id)
-      if(!userData.courses.length) {
+      if (!userData?.courses?.length) {
         await e.reply('暂无课程信息，请先添加课程')
         return true
       }
 
-      const currentWeek = Utils.getCurrentWeek()
+      const currentWeek = Utils.getCurrentWeek(userData.base.startDate)
+      if (!currentWeek) {
+        throw new Error('无效的开学日期')
+      }
+
       const render = new Render()
       const imagePath = await render.courseTable(userData.courses, currentWeek)
       
-      if(!imagePath) {
+      if (!imagePath) {
         throw new Error('生成课表图片失败')
       }
 
       await e.reply(segment.image(`file:///${imagePath}`))
       return true
-    } catch(err) {
+    } catch (err) {
       logger.error(`[Class-Plugin] 查看课表失败: ${err}`)
-      await e.reply('生成课表失败，请稍后重试')
+      await e.reply(`查看课表失败: ${err.message}`)
       return true
     }
   }
@@ -96,8 +128,8 @@ export class Class extends plugin {
     if (!await this.checkInit(e)) return true
 
     try {
-      const currentWeek = Utils.getCurrentWeek()
       const userData = Config.getUserConfig(e.user_id)
+      const currentWeek = Utils.getCurrentWeek(userData.base.startDate)
       
       const weekCourses = userData.courses.filter(course => 
         course.weeks.includes(currentWeek)
@@ -140,7 +172,7 @@ export class Class extends plugin {
           '',
           '说明：',
           '- 星期：周一/周二/周三/周四/周五',
-          '- 节数：1-2/3-4/5-6/7-8/9-10/11-12',
+          '- 节数：1-2/3-4/5-6/7-8/9-10',
           '- 周数：1-16周/单周/双周/1,3,5,7周'
         ].join('\n'))
         return true
@@ -156,20 +188,6 @@ export class Class extends plugin {
       const weekDayNum = weekDayMap[weekDay]
       if (!weekDayNum) {
         await e.reply('星期格式错误，请使用: 周一/周二/周三/周四/周五')
-        return true
-      }
-
-      const time = Utils.parseTime(section)
-      if (!time) {
-        await e.reply([
-          '节数格式错误，支持的节数：',
-          '1-2节：08:00-09:40',
-          '3-4节：10:00-11:40',
-          '5-6节：14:00-15:40',
-          '7-8节：16:00-17:40',
-          '9-10节：19:00-20:40',
-          '11-12节：20:50-22:30'
-        ].join('\n'))
         return true
       }
 
@@ -229,14 +247,14 @@ export class Class extends plugin {
           `👨‍🏫 教师：${teacher}`,
           `📍 教室：${location}`,
           `📅 时间：周${['一','二','三','四','五'][weekDayNum-1]} ${section}节`,
-          `⏰ 时段：${time.start}-${time.end}`,
           `🗓️ 周数：${weeks}`
         ].join('\n'))
       } else {
         throw new Error('保存课程数据失败')
       }
+
       return true
-    } catch(err) {
+    } catch (err) {
       logger.error(`[Class-Plugin] 添加课程失败: ${err}`)
       await e.reply('添加课程失败，请稍后重试')
       return true
@@ -305,6 +323,8 @@ export class Class extends plugin {
 
   // 调课
   async changeSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const [, id, newSection] = e.msg.match(/调课\s*(\d+)\s*(.+)/)
       let userData = Config.getUserConfig(e.user_id)
@@ -320,6 +340,7 @@ export class Class extends plugin {
         return true
       }
 
+      userData.adjustments = userData.adjustments || []
       userData.adjustments.push({
         courseId: id,
         date: moment().format('YYYY-MM-DD'),
@@ -339,6 +360,8 @@ export class Class extends plugin {
 
   // 取消调课
   async cancelChange(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const courseId = e.msg.match(/取消调课\s*(\d+)/)[1]
       let userData = Config.getUserConfig(e.user_id)
@@ -368,7 +391,7 @@ export class Class extends plugin {
 
     try {
       const userData = Config.getUserConfig(e.user_id)
-      if(!userData.adjustments.length) {
+      if(!userData.adjustments?.length) {
         await e.reply('暂无调课记录')
         return true
       }
