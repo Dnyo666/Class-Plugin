@@ -154,18 +154,28 @@ class Server {
 
         // 验证令牌
         const userData = this.data.get(userId)
-        if (!userData || userData.token !== token) {
-          return res.json({ code: 401, msg: '登录失败' })
+        if (!userData) {
+          return res.json({ code: 401, msg: '请先获取登录令牌' })
+        }
+
+        if (userData.token !== token) {
+          return res.json({ code: 401, msg: '令牌错误' })
         }
 
         // 检查令牌是否过期（10分钟）
         if (Date.now() - userData.timestamp > 10 * 60 * 1000) {
           this.data.delete(userId)
-          return res.json({ code: 401, msg: '登录已过期' })
+          return res.json({ code: 401, msg: '令牌已过期，请重新获取' })
         }
 
-        // 登录成功
-        res.json({ code: 0, msg: 'success' })
+        // 登录成功后，将用户ID添加到URL
+        res.json({ 
+          code: 0, 
+          msg: 'success',
+          data: {
+            redirectUrl: `/dashboard?userId=${userId}`
+          }
+        })
       } catch (err) {
         logger.mark(`[Class-Plugin] 认证失败: ${err}`)
         res.json({ code: 500, msg: '服务器错误' })
