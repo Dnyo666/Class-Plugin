@@ -2,9 +2,8 @@ import template from 'art-template'
 import puppeteer from 'puppeteer'
 import path from 'path'
 import fs from 'fs'
-import { createRequire } from 'module'
+import { style } from '../resources/help/imgs/config.js'
 
-const require = createRequire(import.meta.url)
 const _path = process.cwd()
 
 export class Render {
@@ -139,11 +138,6 @@ export class Render {
 
   async getStyle() {
     try {
-      const configPath = path.join(_path, 'plugins', 'class-plugin', 'resources', 'help', 'imgs', 'config.js')
-      if (!fs.existsSync(configPath)) {
-        return this.getDefaultStyle()
-      }
-      const { style } = require(configPath)
       return Object.entries(style)
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
