@@ -1,6 +1,6 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import { Config } from '../model/config.js'
-import { Utils } from '../model/utils.js'
+import Utils from '../utils.js'
 import { Render } from '../model/render.js'
 import moment from 'moment'
 

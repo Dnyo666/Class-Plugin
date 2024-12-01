@@ -8,7 +8,7 @@ export class Setting extends plugin {
             name: 'Class-设置',
             dsc: '课表设置管理',
             event: 'message',
-            priority: 5000,
+            priority: 1,
             rule: [
                 {
                     reg: '^#?(开始|初始化)?课表(配置|设置|初始化)?$',
