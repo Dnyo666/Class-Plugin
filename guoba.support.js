@@ -1,10 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 import { Config } from './model/config.js'
+import moment from 'moment'
+import Utils from './utils.js'
 
 export function supportGuoba() {
   const dataDir = path.join(process.cwd(), 'data/class-plugin/data')
   let users = []
+  
   if (fs.existsSync(dataDir)) {
     users = fs.readdirSync(dataDir)
       .filter(f => f.endsWith('.json'))
@@ -13,7 +16,7 @@ export function supportGuoba() {
         value: f.replace('.json', '')
       }))
   }
-  
+
   return {
     pluginInfo: {
       name: 'class-plugin',
@@ -35,7 +38,16 @@ export function supportGuoba() {
           component: 'Select',
           required: true,
           componentProps: {
-            options: users
+            options: users,
+            onChange: (value) => {
+              // 切换用户时重新加载配置
+              const userData = Config.getUserConfig(value)
+              return {
+                base: userData.base || {},
+                courses: userData.courses || [],
+                remind: userData.remind || {}
+              }
+            }
           }
         },
         {
@@ -64,11 +76,53 @@ export function supportGuoba() {
         },
         {
           component: 'Divider',
-          label: '课程设置'
+          label: '提醒设置'
+        },
+        {
+          field: 'remind.enable',
+          label: '开启提醒',
+          component: 'Switch'
+        },
+        {
+          field: 'remind.advance',
+          label: '提前提醒时间(分钟)',
+          component: 'InputNumber',
+          componentProps: {
+            min: 1,
+            max: 60
+          },
+          vIf: ({ values }) => values.remind?.enable
+        },
+        {
+          field: 'remind.mode',
+          label: '提醒方式',
+          component: 'Select',
+          componentProps: {
+            options: [
+              { label: '私聊提醒', value: 'private' },
+              { label: '群聊提醒', value: 'group' }
+            ]
+          },
+          vIf: ({ values }) => values.remind?.enable
+        },
+        {
+          component: 'Divider',
+          label: '课程管理'
         },
         {
           field: 'courses',
-          label: '课程管理',
+          label: '课程列表',
+          component: 'GTabs',
+          componentProps: {
+            tabList: ({ values }) => values.courses?.map((course, index) => ({
+              label: course.name || `课程${index + 1}`,
+              value: index
+            })) || []
+          }
+        },
+        {
+          field: 'courses',
+          label: '课程信息',
           component: 'GSubForm',
           componentProps: {
             multiple: true,
@@ -82,12 +136,14 @@ export function supportGuoba() {
               {
                 field: 'teacher',
                 label: '教师',
-                component: 'Input'
+                component: 'Input',
+                required: true
               },
               {
                 field: 'location',
                 label: '教室',
-                component: 'Input'
+                component: 'Input',
+                required: true
               },
               {
                 field: 'weekDay',
@@ -106,80 +162,85 @@ export function supportGuoba() {
               },
               {
                 field: 'section',
-                label: '节次',
+                label: '节数',
                 component: 'Select',
                 required: true,
                 componentProps: {
-                  options: Array(8).fill(0).map((_, i) => ({
-                    label: `第${i + 1}节`,
-                    value: (i + 1).toString()
-                  }))
+                  options: [
+                    { label: '1-2节', value: '1-2' },
+                    { label: '3-4节', value: '3-4' },
+                    { label: '5-6节', value: '5-6' },
+                    { label: '7-8节', value: '7-8' },
+                    { label: '9-10节', value: '9-10' }
+                  ]
                 }
               },
               {
                 field: 'weeks',
                 label: '周数',
-                component: 'Select',
+                component: 'GTags',
                 required: true,
                 componentProps: {
-                  mode: 'multiple',
-                  options: Array(16).fill(0).map((_, i) => ({
-                    label: `第${i + 1}周`,
-                    value: i + 1
-                  }))
+                  allowAdd: true,
+                  allowDel: true,
+                  max: 20,
+                  validator: (value) => {
+                    if(!/^\d+$/.test(value)) return '请输入数字'
+                    if(parseInt(value) < 1 || parseInt(value) > 30) return '周数需在1-30之间'
+                    return true
+                  }
                 }
               }
-            ]
-          }
-        },
-        {
-          component: 'Divider',
-          label: '提醒设置'
-        },
-        {
-          field: 'remind.enable',
-          label: '开启提醒',
-          component: 'Switch'
-        },
-        {
-          field: 'remind.advance',
-          label: '提前提醒(分钟)',
-          component: 'InputNumber',
-          componentProps: {
-            min: 1,
-            max: 60
-          }
-        },
-        {
-          field: 'remind.mode',
-          label: '提醒方式',
-          component: 'Select',
-          componentProps: {
-            options: [
-              { label: '私聊提醒', value: 'private' },
-              { label: '群聊提醒', value: 'group' }
             ]
           }
         }
       ],
 
-      getConfigData(form = {}) {
-        const userId = form.userId
-        if (!userId) return {}
+      getConfigData() {
+        // 获取当前选中用户的配置
+        const userId = this.getValue('userId')
+        if(!userId) return {}
         return Config.getUserConfig(userId)
       },
 
-      setConfigData(data, { Result }) {
-        try {
-          const userId = data.userId
-          if (!userId) {
-            return Result.error('请选择用户')
+      setConfigData(data) {
+        // 保存配置到用户文件
+        const userId = this.getValue('userId')
+        if(!userId) return
+        
+        // 验证并格式化数据
+        const config = {
+          base: {
+            startDate: data.base?.startDate || moment().format('YYYY-MM-DD'),
+            maxWeek: data.base?.maxWeek || 16
+          },
+          courses: (data.courses || []).map(course => ({
+            id: course.id || Utils.generateId(),
+            name: course.name,
+            teacher: course.teacher,
+            location: course.location,
+            weekDay: parseInt(course.weekDay),
+            section: course.section,
+            weeks: course.weeks.map(w => parseInt(w)).sort((a, b) => a - b)
+          })),
+          remind: {
+            enable: data.remind?.enable || false,
+            advance: data.remind?.advance || 10,
+            mode: data.remind?.mode || 'private'
           }
-          delete data.userId
-          Config.setUserConfig(userId, data)
-          return Result.ok({}, '保存成功')
-        } catch(e) {
-          return Result.error(e.message)
+        }
+
+        Config.setUserConfig(userId, config)
+      },
+
+      onSubmit(data) {
+        // 提交配置时的处理
+        try {
+          this.setConfigData(data)
+          return true
+        } catch(err) {
+          console.error('[Class-Plugin] 保存配置失败:', err)
+          return false
         }
       }
     }
