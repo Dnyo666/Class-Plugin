@@ -1,28 +1,95 @@
 # 基础配置
 base:
-  # 提醒默认配置
-  remind:
-    enable: false     # 是否开启提醒
-    advance: 10       # 默认提前提醒时间(分钟)
-    mode: private     # 提醒方式:private/group
+  startDate: ''  # 开学日期
+  maxWeek: 16    # 默认学期周数
+
+# 课程时间配置
+schedule:
+  # 课程节数配置
+  sections:
+    morning:
+      - { id: '1', start: '08:00', end: '08:45' }
+      - { id: '2', start: '08:55', end: '09:40' }
+      - { id: '3', start: '10:00', end: '10:45' }
+      - { id: '4', start: '10:55', end: '11:40' }
+    afternoon:
+      - { id: '5', start: '14:00', end: '14:45' }
+      - { id: '6', start: '14:55', end: '15:40' }
+      - { id: '7', start: '16:00', end: '16:45' }
+      - { id: '8', start: '16:55', end: '17:40' }
+    evening:
+      - { id: '9', start: '19:00', end: '19:45' }
+      - { id: '10', start: '19:55', end: '20:40' }
+      - { id: '11', start: '20:50', end: '21:35' }
+      - { id: '12', start: '21:45', end: '22:30' }
+  
+  # 课间休息时间配置
+  breaks:
+    default: 10          # 默认课间休息时间(分钟)
+    special:
+      '2-3': 20         # 第2节到第3节之间的休息时间
+      '4-5': 140        # 第4节到第5节之间的休息时间(午休)
+      '8-9': 80         # 第8节到第9节之间的休息时间(晚饭)
+  
+  # 课程时间段组合配置
+  combinations:
+    - { name: '1-2', sections: ['1', '2'], type: 'morning' }
+    - { name: '3-4', sections: ['3', '4'], type: 'morning' }
+    - { name: '1-4', sections: ['1', '2', '3', '4'], type: 'morning' }
+    - { name: '5-6', sections: ['5', '6'], type: 'afternoon' }
+    - { name: '7-8', sections: ['7', '8'], type: 'afternoon' }
+    - { name: '5-8', sections: ['5', '6', '7', '8'], type: 'afternoon' }
+    - { name: '9-10', sections: ['9', '10'], type: 'evening' }
+    - { name: '11-12', sections: ['11', '12'], type: 'evening' }
+    - { name: '9-12', sections: ['9', '10', '11', '12'], type: 'evening' }
+
+# 提醒设置
+remind:
+  enable: false   # 是否启用提醒
+  advance: 10     # 默认提前提醒时间(分钟)
+  mode: 'private' # 提醒模式：private/group
+
+# 显示设置
+display:
+  theme: 'default'     # 主题
+  showWeekend: false   # 是否显示周末
+  showTime: true       # 是否显示时间
+  compactMode: false   # 是否启用紧凑模式
+
+# 帮助设置
+help:
+  colCount: 2          # 帮助列数
+  bgBlur: true        # 背景模糊
+  showIcon: true      # 显示图标
+  showVersion: true   # 显示版本号
+
+# 导入导出
+import:
+  allowFormats: ['xlsx', 'xls', 'csv']  # 允许的导入格式
+  autoBackup: true    # 是否自动备份
+
+# 调试设置
+debug:
+  logLevel: 'info'    # 日志级别：debug/info/warn/error
+  saveLog: true       # 是否保存日志文件
 
 # 课程数据结构
 data:
   courses:
-    - id: "1"        # 课程ID
+    - id: ""         # 课程ID
       name: ""       # 课程名称
       teacher: ""    # 教师
       location: ""   # 教室
       weeks: []      # 上课周数
       day: 1         # 星期几(1-7)
-      section: 1     # 第几节(1-12)
+      sections: []   # 课程节数列表
       
   # 调课记录
   adjustments:
-    - courseId: "1"  # 课程ID
+    - courseId: ""   # 课程ID
       fromWeek: 1    # 原周数
       fromDay: 1     # 原星期
-      fromSection: 1 # 原节数
+      fromSections: [] # 原节数列表
       toWeek: 2      # 新周数
       toDay: 2       # 新星期
-      toSection: 2   # 新节数
+      toSections: [] # 新节数列表

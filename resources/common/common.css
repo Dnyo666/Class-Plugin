@@ -1,46 +1,167 @@
 body {
-  font-family: "Microsoft YaHei", sans-serif;
-  font-size: 16px;
-  color: #1f2937;
+  font-family: PingFang SC, Microsoft YaHei, sans-serif;
   transform-origin: 0 0;
-  background: transparent;
+  width: 100%;
   margin: 0;
-  padding: 0;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 .container {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  min-height: 100%;
+  background-size: cover;
+  position: relative;
 }
 
-.hide {
-  display: none !important;
+.box {
+  border-radius: 15px;
+  margin: 15px;
+  position: relative;
+  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(3px);
 }
 
-.font-YS {
-  font-family: "Microsoft YaHei", sans-serif;
+.head-box {
+  padding: 20px 15px 0;
 }
 
-.font-NZBZ {
-  font-family: "Microsoft YaHei", sans-serif;
+.title {
+  font-size: 24px;
+  color: #222;
+  text-align: center;
+  line-height: 1.5;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.label {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin-top: 5px;
 }
-::-webkit-scrollbar-track {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+
+.cont-box {
+  margin: 20px 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
 }
-::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 3px;
+
+.help-group {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 15px;
+  margin: 10px 0;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.help-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.help-table .tr {
+  display: flex;
+  gap: 10px;
+}
+
+.help-table .td {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.help-table .td:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.help-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.help-desc {
+  font-size: 12px;
+  color: #666;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 8px;
+}
+
+.schedule-table th {
+  background: #4a90e2;
+  color: white;
+  padding: 10px;
+  font-weight: normal;
+  border-radius: 6px;
+}
+
+.schedule-table td {
+  height: 100px;
+  vertical-align: top;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  padding: 8px;
+  position: relative;
+}
+
+.course-item {
+  margin-bottom: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-name {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.course-info {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.copyright {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 10px 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.version {
+  font-size: 80%;
+  margin: 0 3px;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  vertical-align: -3px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }
