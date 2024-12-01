@@ -1,6 +1,7 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import { Config } from '../model/config.js'
 import moment from 'moment'
+import { Data } from '../model/data.js'
 
 export class Setting extends plugin {
     constructor() {
@@ -21,14 +22,6 @@ export class Setting extends plugin {
                 {
                     reg: '^#?设置学期周数\\s*(\\d+)$',
                     fnc: 'setMaxWeek'
-                },
-                {
-                    reg: '^#?(开启|关闭)提醒$',
-                    fnc: 'toggleRemind'
-                },
-                {
-                    reg: '^#?设置提醒时间\\s*(\\d+)$',
-                    fnc: 'setRemindTime'
                 }
             ]
         })
@@ -39,12 +32,6 @@ export class Setting extends plugin {
         try {
             const config = Config.getUserConfig(e.user_id) || {}
             config.base = config.base || {}
-            config.courses = config.courses || []
-            config.remind = config.remind || {
-                enable: false,
-                advance: 10,
-                mode: 'private'
-            }
             
             // 保存初始配置
             if (Config.setUserConfig(e.user_id, config)) {
@@ -83,7 +70,7 @@ export class Setting extends plugin {
             }
         } catch (err) {
             logger.error(`[Class-Plugin] 初始化配置失败: ${err}`)
-            await e.reply('配置失败，请稍后重试')
+            await e.reply('初始化失败，请稍后重试')
             return false
         }
     }
@@ -165,73 +152,6 @@ export class Setting extends plugin {
         } catch (err) {
             logger.error(`[Class-Plugin] 设置学期周数失败: ${err}`)
             await e.reply('设置失败，请检查输入的周数是否正确')
-            return false
-        }
-    }
-
-    async toggleRemind(e) {
-        logger.mark(`[Class-Plugin] 触发提醒开关命令: ${e.msg}`)
-        try {
-            const enable = e.msg.includes('开启')
-            const config = Config.getUserConfig(e.user_id)
-            
-            // 检查是否已初始化
-            if (!config?.base?.startDate || !config?.base?.maxWeek) {
-                await e.reply('请先完成课表初始化配置：\n#开始配置课表')
-                return false
-            }
-
-            config.remind = config.remind || {}
-            config.remind.enable = enable
-            
-            if (Config.setUserConfig(e.user_id, config)) {
-                await e.reply(`✅ 已${enable ? '开启' : '关闭'}课程提醒`)
-                return true
-            } else {
-                throw new Error('保存配置失败')
-            }
-        } catch (err) {
-            logger.error(`[Class-Plugin] 设置提醒状态失败: ${err}`)
-            await e.reply('设置失败，请稍后重试')
-            return false
-        }
-    }
-
-    async setRemindTime(e) {
-        logger.mark(`[Class-Plugin] 触发设置提醒时间命令: ${e.msg}`)
-        try {
-            const match = e.msg.match(/(\d+)/)
-            if (!match) {
-                await e.reply('请输入正确的时间，例如：#设置提醒时间 10')
-                return false
-            }
-
-            const minutes = parseInt(match[1])
-            if (isNaN(minutes) || minutes < 1 || minutes > 60) {
-                await e.reply('提醒时间必须在 1-60 分钟之间')
-                return false
-            }
-
-            const config = Config.getUserConfig(e.user_id)
-            
-            // 检查是否已初始化
-            if (!config?.base?.startDate || !config?.base?.maxWeek) {
-                await e.reply('请先完成课表初始化配置：\n#开始配置课表')
-                return false
-            }
-
-            config.remind = config.remind || {}
-            config.remind.advance = minutes
-            
-            if (Config.setUserConfig(e.user_id, config)) {
-                await e.reply(`✅ 已设置提前 ${minutes} 分钟提醒`)
-                return true
-            } else {
-                throw new Error('保存配置失败')
-            }
-        } catch (err) {
-            logger.error(`[Class-Plugin] 设置提醒时间失败: ${err}`)
-            await e.reply('设置失败，请检查输入的时间是否正确')
             return false
         }
     }

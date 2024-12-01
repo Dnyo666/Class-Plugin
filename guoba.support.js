@@ -164,25 +164,7 @@ export function supportGuoba() {
                       value: i + 1,
                       group: '具体周数'
                     }))
-                  ],
-                  onChange: (value, form, field) => {
-                    const weeks = new Set()
-                    value.forEach(v => {
-                      if (typeof v === 'string') {
-                        switch(v) {
-                          case 'odd':
-                            for (let i = 1; i <= 30; i += 2) weeks.add(i)
-                            break
-                          case 'even':
-                            for (let i = 2; i <= 30; i += 2) weeks.add(i)
-                            break
-                        }
-                      } else {
-                        weeks.add(v)
-                      }
-                    })
-                    form.setFieldValue(field.name, Array.from(weeks).sort((a, b) => a - b))
-                  }
+                  ]
                 }
               }
             ]
@@ -215,7 +197,7 @@ export function supportGuoba() {
                 }
               }
             } catch (err) {
-              console.error(`[Class-Plugin] 读取用户 ${userId} 配置失败:`, err)
+              logger.error(`[Class-Plugin] 读取用户 ${userId} 配置失败:`, err)
             }
           }
         })
@@ -229,28 +211,59 @@ export function supportGuoba() {
             return Result.error('请选择用户')
           }
 
+          // 获取现有配置
+          const existingConfig = Config.getUserConfig(userId)
+
           // 验证并格式化数据
           const config = {
             base: {
               startDate: moment(data.base?.startDate).format('YYYY-MM-DD'),
               maxWeek: Number(data.base?.maxWeek || 16)
             },
-            courses: (data.courses || []).map(course => ({
+            courses: []
+          }
+
+          // 处理课程数据
+          if (Array.isArray(data.courses)) {
+            config.courses = data.courses.map(course => ({
               id: course.id || Date.now().toString(),
               name: String(course.name || ''),
               teacher: String(course.teacher || ''),
               location: String(course.location || ''),
               weekDay: Number(course.weekDay),
               section: String(course.section || ''),
-              weeks: (course.weeks || []).map(w => Number(w)).sort((a, b) => a - b)
+              weeks: Array.isArray(course.weeks) 
+                ? course.weeks
+                    .map(w => {
+                      if (w === 'odd') {
+                        return Array.from({ length: config.base.maxWeek }, (_, i) => i + 1).filter(n => n % 2 === 1)
+                      } else if (w === 'even') {
+                        return Array.from({ length: config.base.maxWeek }, (_, i) => i + 1).filter(n => n % 2 === 0)
+                      }
+                      return Number(w)
+                    })
+                    .flat()
+                    .filter((v, i, a) => a.indexOf(v) === i)
+                    .sort((a, b) => a - b)
+                : []
             }))
           }
 
+          // 合并现有课程
+          if (existingConfig.courses?.length) {
+            const existingIds = new Set(config.courses.map(c => c.id))
+            const nonDuplicateCourses = existingConfig.courses.filter(c => !existingIds.has(c.id))
+            config.courses = [...config.courses, ...nonDuplicateCourses]
+          }
+
           // 保存配置
-          Config.setUserConfig(userId, config)
-          return Result.ok({}, '保存成功~')
+          if (Config.setUserConfig(userId, config)) {
+            return Result.ok({}, '保存成功~')
+          } else {
+            return Result.error('保存失败')
+          }
         } catch (err) {
-          console.error('[Class-Plugin] 保存配置失败:', err)
+          logger.error('[Class-Plugin] 保存配置失败:', err)
           return Result.error('保存失败：' + err.message)
         }
       }
