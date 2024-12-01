@@ -20,14 +20,23 @@ class Server {
   }
 
   setupRoutes() {
-    // 添加登录页面路由
+    // 登录页面路由
     this.app.get('/login', (req, res) => {
-      const { userId, code } = req.query
-      if (!userId || !code) {
-        return res.status(400).send('参数错误')
+      const { userId } = req.query
+      if (!userId) {
+        return res.status(400).send('参数错误：缺少用户ID')
       }
 
-      // 返回登录页面HTML
+      // 生成登录令牌
+      const token = Math.random().toString(36).substring(2, 15)
+      
+      // 保存令牌信息
+      this.data.set(userId, {
+        token,
+        timestamp: Date.now()
+      })
+
+      // 返回登录页面
       res.send(`
         <!DOCTYPE html>
         <html>
@@ -56,81 +65,50 @@ class Server {
               text-align: center;
               color: #333;
             }
-            .form-group {
-              margin-bottom: 15px;
-            }
-            label {
-              display: block;
-              margin-bottom: 5px;
+            .message {
+              text-align: center;
+              margin: 20px 0;
               color: #666;
             }
-            input {
-              width: 100%;
-              padding: 8px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-              box-sizing: border-box;
-            }
-            button {
-              width: 100%;
-              padding: 10px;
-              background: #4CAF50;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              cursor: pointer;
-            }
-            button:hover {
-              background: #45a049;
-            }
-            .error {
-              color: red;
+            .auto-login {
               text-align: center;
+              color: #999;
               margin-top: 10px;
-              display: none;
             }
           </style>
         </head>
         <body>
           <div class="login-container">
             <h2>课表系统登录</h2>
-            <div class="form-group">
-              <label>用户ID</label>
-              <input type="text" id="userId" value="${userId}" readonly>
-            </div>
-            <div class="form-group">
-              <label>验证码</label>
-              <input type="text" id="verifyCode" value="${code}" readonly>
-            </div>
-            <button onclick="login()">登录</button>
-            <div id="error" class="error"></div>
+            <div class="message">正在自动登录中...</div>
+            <div class="auto-login">如果没有自动跳转，请刷新页面</div>
           </div>
 
           <script>
-            async function login() {
+            // 页面加载完成后自动登录
+            window.onload = async function() {
               try {
-                const userId = document.getElementById('userId').value
-                const verifyCode = document.getElementById('verifyCode').value
-                
-                const response = await fetch('/api/login', {
+                const response = await fetch('/api/auth', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ userId, verifyCode })
+                  body: JSON.stringify({
+                    userId: '${userId}',
+                    token: '${token}'
+                  })
                 })
                 
                 const data = await response.json()
                 if (data.code === 0) {
-                  alert('登录成功！')
                   window.location.href = '/dashboard'
                 } else {
-                  document.getElementById('error').style.display = 'block'
-                  document.getElementById('error').textContent = data.msg
+                  document.querySelector('.message').textContent = data.msg
+                  document.querySelector('.message').style.color = 'red'
                 }
               } catch (err) {
-                document.getElementById('error').style.display = 'block'
-                document.getElementById('error').textContent = '登录失败，请稍后重试'
+                document.querySelector('.message').textContent = '登录失败，请稍后重试'
+                document.querySelector('.message').style.color = 'red'
               }
             }
           </script>
@@ -139,30 +117,30 @@ class Server {
       `)
     })
 
-    // 登录接口
-    this.app.post('/api/login', (req, res) => {
+    // 认证接口
+    this.app.post('/api/auth', (req, res) => {
       try {
-        const { userId, verifyCode } = req.body
-        if (!userId || !verifyCode) {
+        const { userId, token } = req.body
+        if (!userId || !token) {
           return res.json({ code: 400, msg: '参数错误' })
         }
 
-        // 验证码校验
+        // 验证令牌
         const userData = this.data.get(userId)
-        if (!userData || userData.code !== verifyCode) {
-          return res.json({ code: 401, msg: '验证码错误' })
+        if (!userData || userData.token !== token) {
+          return res.json({ code: 401, msg: '登录失败' })
         }
 
-        // 验证码过期检查
+        // 检查令牌是否过期（10分钟）
         if (Date.now() - userData.timestamp > 10 * 60 * 1000) {
           this.data.delete(userId)
-          return res.json({ code: 401, msg: '验证码已过期' })
+          return res.json({ code: 401, msg: '登录已过期' })
         }
 
         // 登录成功
         res.json({ code: 0, msg: 'success' })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 登录失败: ${err}`)
+        logger.mark(`[Class-Plugin] 认证失败: ${err}`)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -182,14 +160,26 @@ class Server {
               padding: 20px;
               background: #f5f5f5;
             }
+            .container {
+              max-width: 800px;
+              margin: 0 auto;
+              background: white;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
             h1 {
               color: #333;
+              text-align: center;
+              margin-bottom: 20px;
             }
           </style>
         </head>
         <body>
-          <h1>欢迎使用课表管理系统</h1>
-          <p>登录成功！</p>
+          <div class="container">
+            <h1>课表管理系统</h1>
+            <p style="text-align: center;">登录成功！</p>
+          </div>
         </body>
         </html>
       `)

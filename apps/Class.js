@@ -58,24 +58,14 @@ export class Class extends plugin {
   // 登录功能
   async login(e) {
     try {
-      const verifyCode = Math.random().toString(36).substring(2, 8).toUpperCase()
       const userId = e.user_id
-
       // 生成登录链接
-      const loginUrl = `http://localhost:3000/login?userId=${userId}&code=${verifyCode}`
+      const loginUrl = `http://localhost:3000/login?userId=${userId}`
       
-      // 保存验证信息
-      server.data.set(userId, {
-        code: verifyCode,
-        timestamp: Date.now()
-      })
-
-      // 发送验证码和链接
       await e.reply([
         '课表管理系统登录\n',
-        `验证码：${verifyCode}\n`,
-        `登录链接：${loginUrl}\n`,
-        '验证码10分钟内有效'
+        `请点击链接登录：${loginUrl}\n`,
+        '链接有效期为10分钟'
       ].join(''))
 
       return true
@@ -451,7 +441,7 @@ export class Class extends plugin {
       return true
     } catch(err) {
       logger.mark(`[Class-Plugin] 取消调课失败: ${err}`)
-      await e.reply('取消调课失���，请稍后重试')
+      await e.reply('取消调课失，请稍后重试')
       return true
     }
   }
