@@ -44,11 +44,11 @@ export class Class extends plugin {
           fnc: 'cancelChange'
         },
         {
-          reg: /^#?调课记录$/,
+          reg: '^#?调课记录$',
           fnc: 'changeRecord'
         },
         {
-          reg: '^#?登录$',
+          reg: '^#?课表登录$',
           fnc: 'login'
         }
       ]
@@ -76,17 +76,14 @@ export class Class extends plugin {
       return await e.reply('在线登录超时，请重新登录')
     }
 
-    // 这里可以处理登录成功后的逻辑
-    const token = Server.data[id].token
-    delete Server.data[id]
-
     // 保存用户token
     let userData = Config.getUserConfig(e.user_id)
     if (!userData) userData = {}
-    userData.token = token
+    userData.token = Server.data[id].token
     Config.setUserConfig(e.user_id, userData)
 
-    return await e.reply('登录成功！')
+    delete Server.data[id]
+    return await e.reply('登录成功！现在您可以在网页上管理您的课表了')
   }
 
   // 初始化检查

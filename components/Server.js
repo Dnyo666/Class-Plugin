@@ -1,5 +1,5 @@
 import { pluginResources } from '../model/path.js';
-import Config from "./Config.js";
+import { Config } from '../model/config.js';
 import express from 'express';
 import fs from 'fs/promises';
 
@@ -68,7 +68,7 @@ class Server {
     }
 
     async checkServer() {
-        const config = await Config.getConfig();
+        const config = Config.getDefConfig();
         const allowLogin = config?.server?.allowLogin ?? true;
         const port = config?.server?.port ?? 3000;
 
