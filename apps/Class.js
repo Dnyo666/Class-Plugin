@@ -57,33 +57,13 @@ export class Class extends plugin {
 
   // 登录功能
   async login(e) {
-    const id = Math.random().toString(36).substring(2, 12)
-    Server.data[id] = { user_id: e.user_id }
     await e.reply([
       '请复制登录地址到浏览器打开：',
-      `http://localhost:3000/login/${id}`,
-      `您的识别码为【${e.user_id}】`,
+      `http://localhost:3000/login/${e.user_id}`,
       '登录地址10分钟内有效'
-    ].join('\n'))
+    ].join('\n'));
 
-    const timeout = Date.now() + 10 * 60 * 1000
-    while (!Server.data[id].token && Date.now() < timeout) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    }
-
-    if (!Server.data[id].token) {
-      delete Server.data[id]
-      return await e.reply('在线登录超时，请重新登录')
-    }
-
-    // 保存用户token
-    let userData = Config.getUserConfig(e.user_id)
-    if (!userData) userData = {}
-    userData.token = Server.data[id].token
-    Config.setUserConfig(e.user_id, userData)
-
-    delete Server.data[id]
-    return await e.reply('登录成功！现在您可以在网页上管理您的课表了')
+    return true;
   }
 
   // 初始化检查

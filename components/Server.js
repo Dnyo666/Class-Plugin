@@ -11,6 +11,10 @@ class Server {
         this.init();
     }
 
+    generateVerifyCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
     async init() {
         this.app.use(express.json());
         await this.checkServer();
@@ -19,13 +23,20 @@ class Server {
             this.checkServer();
         }, 5000);
 
-        this.app.get('/login/:id', async (req, res) => {
-            const id = req.params.id;
-            const filePath = this.data[id] ? '/server/login.html' : '/server/error.html';
+        this.app.get('/login/:userId', async (req, res) => {
+            const userId = req.params.userId;
+            const verifyCode = this.generateVerifyCode();
+            
+            this.data[userId] = {
+                user_id: userId,
+                verify_code: verifyCode,
+                created_at: Date.now()
+            };
 
             try {
-                let data = await fs.readFile(pluginResources + filePath, 'utf8');
+                let data = await fs.readFile(pluginResources + '/server/login.html', 'utf8');
                 res.setHeader('Content-Type', 'text/html');
+                data = data.replace('VERIFY_CODE', verifyCode);
                 res.send(data);
             } catch (error) {
                 console.error(`发送登录页失败：\n${error}`);
@@ -33,24 +44,30 @@ class Server {
             }
         });
 
-        this.app.post('/code/:id', async (req, res) => {
-            const id = req.params.id;
+        this.app.post('/code/:userId', async (req, res) => {
+            const userId = req.params.userId;
             const { code } = req.body;
+            const userData = this.data[userId];
 
-            if (!this.data[id]) {
+            if (!userData) {
                 return res.status(200).json({ code: 400, msg: '链接已失效，请重新获取' });
+            }
+
+            if (Date.now() - userData.created_at > 10 * 60 * 1000) {
+                delete this.data[userId];
+                return res.status(200).json({ code: 400, msg: '链接已过期，请重新获取' });
             }
 
             if (!code) {
                 return res.status(200).json({ code: 400, msg: '请输入识别码' });
             }
 
-            if (code !== this.data[id].user_id) {
+            if (code !== userData.verify_code) {
                 return res.status(200).json({ code: 400, msg: '识别码错误' });
             }
 
             try {
-                this.data[id].token = `${id}_${Date.now()}`;
+                userData.token = `${userId}_${Date.now()}`;
                 return res.status(200).json({ code: 200, msg: '登录成功' });
             } catch (error) {
                 console.error(`登录失败：\n${error}`);
@@ -133,13 +150,9 @@ class Server {
 
     getUserIdFromToken(token) {
         if (!token) return null;
-        // 遍历所有登录数据，找到匹配的token
-        for (const [id, data] of Object.entries(this.data)) {
-            if (data.token === token) {
-                return data.user_id;
-            }
-        }
-        return null;
+        const userId = token.split('_')[0];
+        const userData = this.data[userId];
+        return userData?.token === token ? userId : null;
     }
 
     async checkServer() {

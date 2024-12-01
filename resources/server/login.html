@@ -143,6 +143,12 @@
             margin-bottom: 2em;
             text-align: center;
         }
+        .code-display {
+            color: #00d2d6;
+            font-weight: bold;
+            margin-bottom: 2em;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -152,7 +158,8 @@
     </div>
     <div class="box">
         <h1 class="title">课程表管理系统</h1>
-        <p class="subtitle">请输入机器人发送给您的识别码进行登录</p>
+        <p class="subtitle">请输入识别码进行登录</p>
+        <p class="code-display">您的识别码：<span id="verifyCode">VERIFY_CODE</span></p>
         <form autocomplete="off">
             <div class="inputBox">
                 <input type="text" required="required" name="code" placeholder="请输入识别码">
