@@ -107,8 +107,25 @@ export class Class extends plugin {
         throw new Error('无效的开学日期')
       }
 
-      const render = new Render()
-      const imagePath = await render.courseTable(userData.courses, currentWeek)
+      const imagePath = await Render.render('schedule/schedule', {
+        weekDays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        sections: ['1-2', '3-4', '5-6', '7-8', '9-10'],
+        courses: userData.courses,
+        currentWeek: currentWeek,
+        styles: {
+          defaultStyle: {
+            borderRadius: '6px',
+            padding: '8px',
+            fontSize: '12px',
+            lineHeight: '1.4',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          },
+          courseColors: [
+            '#FF9999', '#99FF99', '#9999FF', '#FFFF99', '#FF99FF',
+            '#99FFFF', '#FFB366', '#99CC66', '#9966CC', '#66CCFF'
+          ]
+        }
+      }, { e })
       
       if (!imagePath) {
         throw new Error('生成课表图片失败')
@@ -140,8 +157,25 @@ export class Class extends plugin {
         return true
       }
 
-      const render = new Render()
-      const imagePath = await render.courseTable(weekCourses, currentWeek)
+      const imagePath = await Render.render('schedule/schedule', {
+        weekDays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        sections: ['1-2', '3-4', '5-6', '7-8', '9-10'],
+        courses: weekCourses,
+        currentWeek: currentWeek,
+        styles: {
+          defaultStyle: {
+            borderRadius: '6px',
+            padding: '8px',
+            fontSize: '12px',
+            lineHeight: '1.4',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          },
+          courseColors: [
+            '#FF9999', '#99FF99', '#9999FF', '#FFFF99', '#FF99FF',
+            '#99FFFF', '#FFB366', '#99CC66', '#9966CC', '#66CCFF'
+          ]
+        }
+      }, { e })
       
       if(!imagePath) {
         throw new Error('生成课表图片失败')
