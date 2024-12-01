@@ -61,38 +61,52 @@ export class Config {
     // 基础配置验证
     const validConfig = {
       base: {
-        startDate: moment(config.base?.startDate || this.defaultConfig.base.startDate).format('YYYY-MM-DD'),
-        maxWeek: Number(config.base?.maxWeek || this.defaultConfig.base.maxWeek)
+        startDate: moment(config.base?.startDate || this.defaultConfig.base.startDate).isValid() 
+          ? moment(config.base?.startDate).format('YYYY-MM-DD')
+          : this.defaultConfig.base.startDate,
+        maxWeek: Number.isInteger(Number(config.base?.maxWeek)) && Number(config.base?.maxWeek) > 0
+          ? Number(config.base?.maxWeek)
+          : this.defaultConfig.base.maxWeek
       },
       courses: [],
       remind: {
         enable: Boolean(config.remind?.enable),
-        advance: Number(config.remind?.advance || this.defaultConfig.remind.advance),
-        mode: ['private', 'group'].includes(config.remind?.mode) ? config.remind.mode : this.defaultConfig.remind.mode
+        advance: Number.isInteger(Number(config.remind?.advance)) && Number(config.remind?.advance) > 0
+          ? Number(config.remind?.advance)
+          : this.defaultConfig.remind.advance,
+        mode: ['private', 'group'].includes(config.remind?.mode)
+          ? config.remind.mode
+          : this.defaultConfig.remind.mode
       }
     }
 
     // 课程数据验证
     if (Array.isArray(config.courses)) {
-      validConfig.courses = config.courses.map(course => ({
-        id: String(course.id || Date.now()),
-        name: String(course.name || ''),
-        teacher: String(course.teacher || ''),
-        location: String(course.location || ''),
-        weekDay: Number(course.weekDay),
-        section: String(course.section || ''),
-        weeks: Array.isArray(course.weeks) 
-          ? course.weeks.map(w => Number(w)).filter(w => w > 0 && w <= 30).sort((a, b) => a - b)
-          : []
-      })).filter(course => 
-        course.name && 
-        course.teacher && 
-        course.location && 
-        course.weekDay >= 1 && 
-        course.weekDay <= 7 &&
-        /^\d+-\d+$/.test(course.section) &&
-        course.weeks.length > 0
-      )
+      validConfig.courses = config.courses
+        .filter(course => course && typeof course === 'object')
+        .map(course => ({
+          id: String(course.id || Date.now()),
+          name: String(course.name || '').trim(),
+          teacher: String(course.teacher || '').trim(),
+          location: String(course.location || '').trim(),
+          weekDay: Number.isInteger(Number(course.weekDay)) ? Number(course.weekDay) : 0,
+          section: String(course.section || ''),
+          weeks: Array.isArray(course.weeks)
+            ? course.weeks
+                .map(w => Number(w))
+                .filter(w => Number.isInteger(w) && w > 0 && w <= 30)
+                .sort((a, b) => a - b)
+            : []
+        }))
+        .filter(course =>
+          course.name &&
+          course.teacher &&
+          course.location &&
+          course.weekDay >= 1 &&
+          course.weekDay <= 7 &&
+          /^\d+-\d+$/.test(course.section) &&
+          course.weeks.length > 0
+        )
     }
 
     return validConfig
