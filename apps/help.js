@@ -4,8 +4,6 @@ import { style } from '../resources/help/imgs/config.js';
 import { Config } from '../model/config.js';
 import _ from 'lodash';
 import fs from 'node:fs';
-import { segment } from '../../../lib/utils/segment.js';
-import { logger } from '../../../lib/utils/logger.js';
 
 const render = new Render();
 
@@ -143,11 +141,11 @@ export class Help extends plugin {
 
             // 如果未初始化，发送提示消息
             if (!isInitialized) {
-                await e.reply('⚠️ 检测到您还未完成课表初始化配置\n请先使用 #开始配置课表 进行设置');
+                await this.reply('⚠️ 检测到您还未完成课表初始化配置\n请先使用 #开始配置课表 进行设置');
             }
 
             // 发送帮助图片
-            await this.reply([segment.image(imagePath)]);
+            await this.reply(await this.e.segment.image(imagePath));
 
             // 删除临时文件
             setTimeout(() => {
@@ -158,23 +156,9 @@ export class Help extends plugin {
 
             return true;
         } catch (err) {
-            logger.error(`[Class-Plugin] 生成帮助图片失败: ${err}`);
-            await e.reply('生成帮助图片失败，请稍后重试');
+            this.logger.error(`[Class-Plugin] 生成帮助图片失败: ${err}`);
+            await this.reply('生成帮助图片失败，请稍后重试');
             return true;
         }
-    }
-
-    async getThemeData(helpCfg) {
-        const colCount = Math.min(5, Math.max(parseInt(helpCfg?.colCount) || 3, 2));
-        const width = Math.min(2500, Math.max(800, colCount * 265 + 30));
-
-        return {
-            style: `<style>
-                body { width: ${width}px; }
-                .container { width: ${width}px; }
-                .help-table .td, .help-table .th { width: ${100 / colCount}% }
-            </style>`,
-            colCount
-        };
     }
 }
