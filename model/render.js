@@ -57,7 +57,7 @@ export class Render {
 
       return this.browser
     } catch (error) {
-      logger.error(`[Class-Plugin] 初始化浏览器失败: ${error}`)
+      console.error(`[Class-Plugin] 初始化浏览器失败: ${error}`)
       this.browser = null
       throw error
     } finally {
@@ -70,7 +70,7 @@ export class Render {
       try {
         await this.browser.close()
       } catch (error) {
-        logger.error(`[Class-Plugin] 关闭浏览器失败: ${error}`)
+        console.error(`[Class-Plugin] 关闭浏览器失败: ${error}`)
       }
       this.browser = null
     }
@@ -81,7 +81,7 @@ export class Render {
       try {
         return await renderFn()
       } catch (error) {
-        logger.error(`[Class-Plugin] 渲染重试 ${i + 1}/${maxRetries}: ${error}`)
+        console.error(`[Class-Plugin] 渲染重试 ${i + 1}/${maxRetries}: ${error}`)
         await this.closeBrowser()
         if (i === maxRetries - 1) throw error
         await new Promise(resolve => setTimeout(resolve, this.retryDelay))
@@ -125,7 +125,7 @@ export class Render {
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
     } catch (error) {
-      logger.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
+      console.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
       return this.getDefaultStyle()
     }
   }
@@ -190,7 +190,7 @@ export class Render {
         defaultLayout: layoutPath
       })
     } catch (error) {
-      logger.error(`[Class-Plugin] 生成HTML失败: ${error}`)
+      console.error(`[Class-Plugin] 生成HTML失败: ${error}`)
       throw error
     }
   }

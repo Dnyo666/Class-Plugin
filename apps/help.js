@@ -104,7 +104,7 @@ export class Help extends plugin {
                     group: '⏰ 提醒设置',
                     list: [
                         {
-                            title: '#开启提醒',
+                            title: '#开启��醒',
                             desc: '开启上课提醒功能'
                         },
                         {
@@ -156,8 +156,7 @@ export class Help extends plugin {
 
             return true;
         } catch (err) {
-            this.logger.error(`[Class-Plugin] 生成帮助图片失败: ${err}`);
-            await this.reply('生成帮助图片失败，请稍后重试');
+            this.e.reply('生成帮助图片失败，请稍后重试');
             return false;
         }
     }
