@@ -28,120 +28,120 @@ class Server {
       }
 
       // 返回登录页面
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>课表系统登录</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              margin: 0;
-              background: #f5f5f5;
-            }
-            .login-container {
-              background: white;
-              padding: 20px;
-              border-radius: 8px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-              width: 300px;
-            }
-            h2 {
-              text-align: center;
-              color: #333;
-            }
-            .form-group {
-              margin-bottom: 15px;
-            }
-            label {
-              display: block;
-              margin-bottom: 5px;
-              color: #666;
-            }
-            input {
-              width: 100%;
-              padding: 8px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-              box-sizing: border-box;
-            }
-            button {
-              width: 100%;
-              padding: 10px;
-              background: #4CAF50;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              cursor: pointer;
-            }
-            button:hover {
-              background: #45a049;
-            }
-            .error {
-              color: red;
-              text-align: center;
-              margin-top: 10px;
-              display: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="login-container">
-            <h2>课表系统登录</h2>
-            <div class="form-group">
-              <label>用户ID</label>
-              <input type="text" id="userId" value="${userId}" readonly>
-            </div>
-            <div class="form-group">
-              <label>登录令牌</label>
-              <input type="text" id="token" placeholder="请输入机器人发送的登录令牌">
-            </div>
-            <button onclick="login()">登录</button>
-            <div id="error" class="error"></div>
-          </div>
-
-          <script>
-            async function login() {
-              try {
-                const userId = document.getElementById('userId').value
-                const token = document.getElementById('token').value
-
-                if (!token) {
-                  document.getElementById('error').style.display = 'block'
-                  document.getElementById('error').textContent = '请输入登录令牌'
-                  return
-                }
-
-                const response = await fetch('/api/auth', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({ userId, token })
-                })
-                
-                const data = await response.json()
-                if (data.code === 0 && data.data?.redirectUrl) {
-                  window.location.href = data.data.redirectUrl
-                } else {
-                  document.getElementById('error').style.display = 'block'
-                  document.getElementById('error').textContent = data.msg || '登录失败'
-                }
-              } catch (err) {
-                document.getElementById('error').style.display = 'block'
-                document.getElementById('error').textContent = '登录失败，请稍后重试'
-              }
-            }
-          </script>
-        </body>
-        </html>
-      `)
+      res.send([
+        '<!DOCTYPE html>',
+        '<html>',
+        '<head>',
+        '  <meta charset="UTF-8">',
+        '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+        '  <title>课表系统登录</title>',
+        '  <style>',
+        '    body {',
+        '      font-family: Arial, sans-serif;',
+        '      display: flex;',
+        '      justify-content: center;',
+        '      align-items: center;',
+        '      height: 100vh;',
+        '      margin: 0;',
+        '      background: #f5f5f5;',
+        '    }',
+        '    .login-container {',
+        '      background: white;',
+        '      padding: 20px;',
+        '      border-radius: 8px;',
+        '      box-shadow: 0 2px 4px rgba(0,0,0,0.1);',
+        '      width: 300px;',
+        '    }',
+        '    h2 {',
+        '      text-align: center;',
+        '      color: #333;',
+        '    }',
+        '    .form-group {',
+        '      margin-bottom: 15px;',
+        '    }',
+        '    label {',
+        '      display: block;',
+        '      margin-bottom: 5px;',
+        '      color: #666;',
+        '    }',
+        '    input {',
+        '      width: 100%;',
+        '      padding: 8px;',
+        '      border: 1px solid #ddd;',
+        '      border-radius: 4px;',
+        '      box-sizing: border-box;',
+        '    }',
+        '    button {',
+        '      width: 100%;',
+        '      padding: 10px;',
+        '      background: #4CAF50;',
+        '      color: white;',
+        '      border: none;',
+        '      border-radius: 4px;',
+        '      cursor: pointer;',
+        '    }',
+        '    button:hover {',
+        '      background: #45a049;',
+        '    }',
+        '    .error {',
+        '      color: red;',
+        '      text-align: center;',
+        '      margin-top: 10px;',
+        '      display: none;',
+        '    }',
+        '  </style>',
+        '</head>',
+        '<body>',
+        '  <div class="login-container">',
+        '    <h2>课表系统登录</h2>',
+        '    <div class="form-group">',
+        '      <label>用户ID</label>',
+        '      <input type="text" id="userId" value="' + userId + '" readonly>',
+        '    </div>',
+        '    <div class="form-group">',
+        '      <label>登录令牌</label>',
+        '      <input type="text" id="token" placeholder="请输入机器人发送的登录令牌">',
+        '    </div>',
+        '    <button onclick="login()">登录</button>',
+        '    <div id="error" class="error"></div>',
+        '  </div>',
+        '',
+        '  <script>',
+        '    async function login() {',
+        '      try {',
+        '        const userId = document.getElementById("userId").value;',
+        '        const token = document.getElementById("token").value;',
+        '',
+        '        if (!token) {',
+        '          document.getElementById("error").style.display = "block";',
+        '          document.getElementById("error").textContent = "请输入登录令牌";',
+        '          return;',
+        '        }',
+        '',
+        '        const response = await fetch("/api/auth", {',
+        '          method: "POST",',
+        '          headers: {',
+        '            "Content-Type": "application/json"',
+        '          },',
+        '          body: JSON.stringify({ userId, token })',
+        '        });',
+        '',
+        '        const data = await response.json();',
+        '        if (data.code === 0 && data.data && data.data.redirectUrl) {',
+        '          window.location.href = data.data.redirectUrl;',
+        '        } else {',
+        '          document.getElementById("error").style.display = "block";',
+        '          document.getElementById("error").textContent = data.msg || "登录失败";',
+        '        }',
+        '      } catch (err) {',
+        '        document.getElementById("error").style.display = "block";',
+        '        document.getElementById("error").textContent = "登录失败，请稍后重试";',
+        '      }',
+        '    }',
+        '  </script>',
+        '</body>',
+        '</html>'
+      ].join('\n'))
     })
 
     // 认证接口
@@ -173,7 +173,7 @@ class Server {
           code: 0, 
           msg: 'success',
           data: {
-            redirectUrl: `/dashboard?userId=${userId}`
+            redirectUrl: '/dashboard?userId=' + userId
           }
         })
       } catch (err) {
@@ -457,7 +457,7 @@ class Server {
               })
               event.target.classList.add('active')
               
-              // 切换到相应标签时刷新数据
+              // 切��到相应标签��刷新数据
               if (tabId === 'schedule') {
                 loadSchedule()
               } else if (tabId === 'courseManage') {
@@ -572,35 +572,35 @@ class Server {
               if (!userId) return
 
               try {
-                const response = await fetch(`/api/schedule/${userId}`)
+                const response = await fetch('/api/schedule/' + userId)
                 const data = await response.json()
                 if (data.code === 0) {
                   let html = '<table class="course-list-table">'
-                  html += `
-                    <tr>
-                      <th>课程名称</th>
-                      <th>教师</th>
-                      <th>教室</th>
-                      <th>时间</th>
-                      <th>周数</th>
-                      <th>操作</th>
-                    </tr>
-                  `
+                  html += [
+                    '<tr>',
+                    '  <th>课程名称</th>',
+                    '  <th>教师</th>',
+                    '  <th>教室</th>',
+                    '  <th>时间</th>',
+                    '  <th>周数</th>',
+                    '  <th>操作</th>',
+                    '</tr>'
+                  ].join('')
                   
                   data.data.courses.forEach(course => {
-                    html += `
-                      <tr>
-                        <td>${course.name}</td>
-                        <td>${course.teacher}</td>
-                        <td>${course.location}</td>
-                        <td>周${['一','二','三','四','五','六','日'][course.weekDay-1]} ${course.section}节</td>
-                        <td>${course.weeks.join(',')}</td>
-                        <td>
-                          <button onclick="editCourse('${course.id}')">编辑</button>
-                          <button onclick="deleteCourse('${course.id}')">删除</button>
-                        </td>
-                      </tr>
-                    `
+                    html += [
+                      '<tr>',
+                      '  <td>' + course.name + '</td>',
+                      '  <td>' + course.teacher + '</td>',
+                      '  <td>' + course.location + '</td>',
+                      '  <td>周' + ['一','二','三','四','五','六','日'][course.weekDay-1] + ' ' + course.section + '节</td>',
+                      '  <td>' + course.weeks.join(',') + '</td>',
+                      '  <td>',
+                      '    <button onclick="editCourse(\'' + course.id + '\')">编辑</button>',
+                      '    <button onclick="deleteCourse(\'' + course.id + '\')">删除</button>',
+                      '  </td>',
+                      '</tr>'
+                    ].join('')
                   })
                   
                   html += '</table>'
@@ -611,7 +611,7 @@ class Server {
               }
             }
 
-            // 添加删除课程的函数
+            // 添加删除课程函数
             async function deleteCourse(courseId) {
               if (!confirm('确定要删除这门课程吗？')) return
               
@@ -767,7 +767,7 @@ class Server {
           }
         })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 获取课表失败: ${err}`)
+        logger.mark('[Class-Plugin] 获取课表失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })

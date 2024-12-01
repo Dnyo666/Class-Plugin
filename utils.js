@@ -122,4 +122,13 @@ export default class Utils {
 
     return true
   }
+
+  // 添加错误处理
+  static handleError(err) {
+    logger.mark('[Class-Plugin] ' + err.message)
+    return {
+      code: 500,
+      msg: '服务器错误'
+    }
+  }
 } 

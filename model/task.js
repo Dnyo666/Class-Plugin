@@ -27,28 +27,30 @@ export class Task {
       const users = Config.getAllUsers()
 
       for (const userId of users) {
-        const userData = Config.getUserConfig(userId)
-        if (!userData?.remind?.enable) continue
+        try {
+          const userData = Config.getUserConfig(userId)
+          if (!userData?.remind?.enable) continue
 
-        const todayCourses = this.getTodayCourses(userData)
-        for (const course of todayCourses) {
-          if (this.shouldRemind(course, now, userData.remind.advance)) {
-            // 检查是否已经提醒过
-            const key = `${userId}_${course.id}_${now.format('YYYY-MM-DD')}`
+          const todayCourses = this.getTodayCourses(userData)
+          for (const course of todayCourses) {
+            const key = userId + '_' + course.id + '_' + now.format('YYYY-MM-DD')
             if (this.lastCheck.has(key)) continue
 
-            await this.sendRemind(userId, course, userData.remind.mode)
-            this.lastCheck.set(key, true)
+            if (this.shouldRemind(course, now, userData.remind.advance)) {
+              await this.sendRemind(userId, course, userData.remind.mode)
+              this.lastCheck.set(key, true)
 
-            // 24小时后清除记录
-            setTimeout(() => {
-              this.lastCheck.delete(key)
-            }, 24 * 60 * 60 * 1000)
+              setTimeout(() => {
+                this.lastCheck.delete(key)
+              }, 24 * 60 * 60 * 1000)
+            }
           }
+        } catch (err) {
+          logger.mark('[Class-Plugin] 检查用户 ' + userId + ' 课程失败: ' + err)
         }
       }
     } catch (err) {
-      logger.mark(`[Class-Plugin] 检查课程提醒失败: ${err}`)
+      logger.mark('[Class-Plugin] 检查课程提醒失败: ' + err)
     }
   }
 
