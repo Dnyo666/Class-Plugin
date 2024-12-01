@@ -3,7 +3,7 @@ import { Render } from '../model/render.js';
 import { style } from '../resources/help/imgs/config.js';
 import { Config } from '../model/config.js';
 import _ from 'lodash';
-import fs from 'fs';
+import fs from 'node:fs';
 import { segment } from '../../../lib/utils/segment.js';
 import { logger } from '../../../lib/utils/logger.js';
 
@@ -147,7 +147,7 @@ export class Help extends plugin {
             }
 
             // 发送帮助图片
-            await e.reply(segment.image(`file:///${imagePath}`));
+            await this.reply([segment.image(imagePath)]);
 
             // 删除临时文件
             setTimeout(() => {

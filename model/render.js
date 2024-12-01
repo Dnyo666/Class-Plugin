@@ -96,7 +96,7 @@ export class Render {
           omitBackground: true
         })
 
-        const tmpPath = path.join(_path, 'temp', `help_${Date.now()}.png`)
+        const tmpPath = path.join(_path, 'plugins', 'class-plugin', 'temp', `help_${Date.now()}.png`)
         fs.writeFileSync(tmpPath, buff)
         return tmpPath
       } finally {
