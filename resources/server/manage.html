@@ -449,12 +449,49 @@
             });
         }
 
+        // 获取当前周和日期
+        async function getCurrentWeek() {
+            const res = await request('/api/current');
+            if (res?.code === 200) {
+                const { currentWeek, currentDay, maxWeek } = res.data;
+                
+                // 更新周数选择器
+                const selector = document.getElementById('weekSelector');
+                selector.innerHTML = ''; // 清空现有选项
+                for (let i = 1; i <= maxWeek; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `第${i}周`;
+                    if (i === currentWeek) {
+                        option.selected = true;
+                    }
+                    selector.appendChild(option);
+                }
+
+                // 高亮当前日期的列
+                document.querySelectorAll('.schedule-cell').forEach(cell => {
+                    if (parseInt(cell.dataset.day) === currentDay) {
+                        cell.style.backgroundColor = '#f8f9fa';
+                    }
+                });
+
+                return currentWeek;
+            }
+            return 1;
+        }
+
         // 初始化
-        $(document).ready(() => {
+        $(document).ready(async () => {
             if (!checkLogin()) return;
-            initWeekSelector();
+            
+            // 初始化课表结构
             initSchedule();
-            loadCourses();
+            
+            // 获取当前周次并加载课程
+            const currentWeek = await getCurrentWeek();
+            if (currentWeek) {
+                loadCourses();
+            }
         });
 
         // 切换周数时重新加载课程
