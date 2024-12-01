@@ -59,12 +59,87 @@ class Server {
         });
 
         this.app.get('/manage', async (req, res) => {
-            res.send('课程表管理页面 - 开发中');
+            try {
+                let data = await fs.readFile(pluginResources + '/server/manage.html', 'utf8');
+                res.setHeader('Content-Type', 'text/html');
+                res.send(data);
+            } catch (error) {
+                console.error(`发送管理页面失败：\n${error}`);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
+        this.app.get('/api/course', (req, res) => {
+            const { week } = req.query;
+            const userId = this.getUserIdFromToken(req.headers.authorization);
+            if (!userId) {
+                return res.json({ code: 401, msg: '请先登录' });
+            }
+
+            try {
+                const userData = Config.getUserConfig(userId);
+                const courses = userData.courses.filter(course => {
+                    return course.startWeek <= week && course.endWeek >= week &&
+                        (course.type === 0 || 
+                        (course.type === 1 && week % 2 === 1) || 
+                        (course.type === 2 && week % 2 === 0));
+                });
+                res.json({ code: 200, data: courses });
+            } catch (error) {
+                console.error(`获取课程失败：\n${error}`);
+                res.json({ code: 500, msg: '获取课程失败' });
+            }
+        });
+
+        this.app.post('/api/course', (req, res) => {
+            const userId = this.getUserIdFromToken(req.headers.authorization);
+            if (!userId) {
+                return res.json({ code: 401, msg: '请先登录' });
+            }
+
+            try {
+                const course = req.body;
+                const userData = Config.getUserConfig(userId);
+                course.id = Date.now().toString();
+                userData.courses.push(course);
+                Config.setUserConfig(userId, userData);
+                res.json({ code: 200, msg: '添加成功' });
+            } catch (error) {
+                console.error(`添加课程失败：\n${error}`);
+                res.json({ code: 500, msg: '添加课程失败' });
+            }
+        });
+
+        this.app.post('/api/course/import', (req, res) => {
+            const userId = this.getUserIdFromToken(req.headers.authorization);
+            if (!userId) {
+                return res.json({ code: 401, msg: '请先登录' });
+            }
+
+            try {
+                const { courseData } = req.body;
+                // TODO: 实现课表导入逻辑
+                res.json({ code: 200, msg: '导入成功' });
+            } catch (error) {
+                console.error(`导入课表失败：\n${error}`);
+                res.json({ code: 500, msg: '导入课表失败' });
+            }
         });
 
         this.app.use((req, res) => {
             res.redirect('/');
         });
+    }
+
+    getUserIdFromToken(token) {
+        if (!token) return null;
+        // 遍历所有登录数据，找到匹配的token
+        for (const [id, data] of Object.entries(this.data)) {
+            if (data.token === token) {
+                return data.user_id;
+            }
+        }
+        return null;
     }
 
     async checkServer() {
