@@ -20,6 +20,125 @@ class Server {
   }
 
   setupRoutes() {
+    // 添加登录页面路由
+    this.app.get('/login', (req, res) => {
+      const { userId, code } = req.query
+      if (!userId || !code) {
+        return res.status(400).send('参数错误')
+      }
+
+      // 返回登录页面HTML
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>课表系统登录</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              background: #f5f5f5;
+            }
+            .login-container {
+              background: white;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              width: 300px;
+            }
+            h2 {
+              text-align: center;
+              color: #333;
+            }
+            .form-group {
+              margin-bottom: 15px;
+            }
+            label {
+              display: block;
+              margin-bottom: 5px;
+              color: #666;
+            }
+            input {
+              width: 100%;
+              padding: 8px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              box-sizing: border-box;
+            }
+            button {
+              width: 100%;
+              padding: 10px;
+              background: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+            button:hover {
+              background: #45a049;
+            }
+            .error {
+              color: red;
+              text-align: center;
+              margin-top: 10px;
+              display: none;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="login-container">
+            <h2>课表系统登录</h2>
+            <div class="form-group">
+              <label>用户ID</label>
+              <input type="text" id="userId" value="${userId}" readonly>
+            </div>
+            <div class="form-group">
+              <label>验证码</label>
+              <input type="text" id="verifyCode" value="${code}" readonly>
+            </div>
+            <button onclick="login()">登录</button>
+            <div id="error" class="error"></div>
+          </div>
+
+          <script>
+            async function login() {
+              try {
+                const userId = document.getElementById('userId').value
+                const verifyCode = document.getElementById('verifyCode').value
+                
+                const response = await fetch('/api/login', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ userId, verifyCode })
+                })
+                
+                const data = await response.json()
+                if (data.code === 0) {
+                  alert('登录成功！')
+                  window.location.href = '/dashboard'
+                } else {
+                  document.getElementById('error').style.display = 'block'
+                  document.getElementById('error').textContent = data.msg
+                }
+              } catch (err) {
+                document.getElementById('error').style.display = 'block'
+                document.getElementById('error').textContent = '登录失败，请稍后重试'
+              }
+            }
+          </script>
+        </body>
+        </html>
+      `)
+    })
+
     // 登录接口
     this.app.post('/api/login', (req, res) => {
       try {
@@ -27,12 +146,53 @@ class Server {
         if (!userId || !verifyCode) {
           return res.json({ code: 400, msg: '参数错误' })
         }
-        // 验证码校验逻辑...
+
+        // 验证码校验
+        const userData = this.data.get(userId)
+        if (!userData || userData.code !== verifyCode) {
+          return res.json({ code: 401, msg: '验证码错误' })
+        }
+
+        // 验证码过期检查
+        if (Date.now() - userData.timestamp > 10 * 60 * 1000) {
+          this.data.delete(userId)
+          return res.json({ code: 401, msg: '验证码已过期' })
+        }
+
+        // 登录成功
         res.json({ code: 0, msg: 'success' })
       } catch (err) {
         logger.mark(`[Class-Plugin] 登录失败: ${err}`)
         res.json({ code: 500, msg: '服务器错误' })
       }
+    })
+
+    // 仪表盘页面
+    this.app.get('/dashboard', (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>课表管理系统</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background: #f5f5f5;
+            }
+            h1 {
+              color: #333;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>欢迎使用课表管理系统</h1>
+          <p>登录成功！</p>
+        </body>
+        </html>
+      `)
     })
 
     // 获取用户配置
