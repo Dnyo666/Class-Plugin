@@ -31,7 +31,8 @@ export class Notify extends plugin {
     })
 
     this.task = null
-    this.init()
+    // 延迟初始化定时任务，确保Bot实例已完全加载
+    setTimeout(() => this.init(), 5000)
   }
 
   init() {
@@ -41,11 +42,16 @@ export class Notify extends plugin {
         this.task.cancel()
       }
 
-      // 创建新的定时任务
-      this.task = schedule.scheduleJob('* * * * *', () => {
-        this.checkCourses().catch(err => {
+      // 创建新的定时任务，使用cron表达式
+      this.task = schedule.scheduleJob({
+        rule: '*/1 * * * *',
+        tz: 'Asia/Shanghai'
+      }, async () => {
+        try {
+          await this.checkCourses()
+        } catch(err) {
           logger.error(`[Class-Plugin] 课程检查失败: ${err}`)
-        })
+        }
       })
 
       logger.info('[Class-Plugin] 课程提醒任务已启动')

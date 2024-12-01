@@ -2,7 +2,9 @@ import template from 'art-template'
 import puppeteer from 'puppeteer'
 import path from 'path'
 import fs from 'fs'
+import { createRequire } from 'module'
 
+const require = createRequire(import.meta.url)
 const _path = process.cwd()
 
 export class Render {
@@ -35,7 +37,6 @@ export class Render {
         ]
       })
 
-      // 监听浏览器断开事件
       this.browser.on('disconnected', () => {
         this.browser = null
         this.isInitializing = false
@@ -93,7 +94,6 @@ export class Render {
         const body = await page.$('#container')
         const buff = await body.screenshot({
           type: 'png',
-          quality: 100,
           omitBackground: true
         })
 
@@ -125,7 +125,6 @@ export class Render {
         const body = await page.$('#container')
         const buff = await body.screenshot({
           type: 'png',
-          quality: 100,
           omitBackground: true
         })
 
@@ -140,14 +139,28 @@ export class Render {
 
   getStyle() {
     try {
-      const styleConfig = require('../resources/help/imgs/config.js').style
+      const configPath = path.join(_path, 'plugins', 'class-plugin', 'resources', 'help', 'imgs', 'config.js')
+      if (!fs.existsSync(configPath)) {
+        return this.getDefaultStyle()
+      }
+      const styleConfig = require(configPath).style
       return Object.entries(styleConfig)
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
     } catch (error) {
       logger.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
-      return ''
+      return this.getDefaultStyle()
     }
+  }
+
+  getDefaultStyle() {
+    return `
+      body { font-family: "Microsoft YaHei", sans-serif; }
+      .container { padding: 20px; }
+      .help-title { font-size: 24px; margin-bottom: 10px; }
+      .help-group { font-size: 18px; margin: 15px 0; }
+      .help-item { padding: 10px; margin: 5px 0; background: #f5f5f5; border-radius: 5px; }
+    `
   }
 
   getCourseStyles() {

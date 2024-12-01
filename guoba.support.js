@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { Config } from './model/config.js'
 import moment from 'moment'
+import { Config } from './model/config.js'
 import Utils from './utils.js'
 
 export function supportGuoba() {
@@ -39,14 +39,21 @@ export function supportGuoba() {
           required: true,
           componentProps: {
             options: users,
-            onChange: (value) => {
-              // 切换用户时重新加载配置
+            onChange: (value, form) => {
+              if(!value) return {}
               const userData = Config.getUserConfig(value)
-              return {
-                base: userData.base || {},
+              form.setFieldsValue({
+                base: userData.base || {
+                  startDate: moment().format('YYYY-MM-DD'),
+                  maxWeek: 16
+                },
                 courses: userData.courses || [],
-                remind: userData.remind || {}
-              }
+                remind: userData.remind || {
+                  enable: false,
+                  advance: 10,
+                  mode: 'private'
+                }
+              })
             }
           }
         },
@@ -196,47 +203,40 @@ export function supportGuoba() {
         }
       ],
 
-      getConfigData() {
-        // 获取当前选中用户的配置
-        const userId = this.getValue('userId')
+      getConfigData(form) {
+        const userId = form?.getFieldValue('userId')
         if(!userId) return {}
         return Config.getUserConfig(userId)
       },
 
-      setConfigData(data) {
-        // 保存配置到用户文件
-        const userId = this.getValue('userId')
-        if(!userId) return
+      setConfigData(data, form) {
+        const userId = form?.getFieldValue('userId')
+        if(!userId) return false
         
-        // 验证并格式化数据
-        const config = {
-          base: {
-            startDate: data.base?.startDate || moment().format('YYYY-MM-DD'),
-            maxWeek: data.base?.maxWeek || 16
-          },
-          courses: (data.courses || []).map(course => ({
-            id: course.id || Utils.generateId(),
-            name: course.name,
-            teacher: course.teacher,
-            location: course.location,
-            weekDay: parseInt(course.weekDay),
-            section: course.section,
-            weeks: course.weeks.map(w => parseInt(w)).sort((a, b) => a - b)
-          })),
-          remind: {
-            enable: data.remind?.enable || false,
-            advance: data.remind?.advance || 10,
-            mode: data.remind?.mode || 'private'
-          }
-        }
-
-        Config.setUserConfig(userId, config)
-      },
-
-      onSubmit(data) {
-        // 提交配置时的处理
         try {
-          this.setConfigData(data)
+          // 验证并格式化数据
+          const config = {
+            base: {
+              startDate: data.base?.startDate || moment().format('YYYY-MM-DD'),
+              maxWeek: data.base?.maxWeek || 16
+            },
+            courses: (data.courses || []).map(course => ({
+              id: course.id || Utils.generateId(),
+              name: course.name,
+              teacher: course.teacher,
+              location: course.location,
+              weekDay: parseInt(course.weekDay),
+              section: course.section,
+              weeks: course.weeks.map(w => parseInt(w)).sort((a, b) => a - b)
+            })),
+            remind: {
+              enable: data.remind?.enable || false,
+              advance: data.remind?.advance || 10,
+              mode: data.remind?.mode || 'private'
+            }
+          }
+
+          Config.setUserConfig(userId, config)
           return true
         } catch(err) {
           console.error('[Class-Plugin] 保存配置失败:', err)
