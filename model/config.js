@@ -244,4 +244,10 @@ export class Config {
       return []
     }
   }
+
+  // 添加server配置
+  static server = {
+    port: 8080,
+    host: 'localhost'
+  }
 } 
