@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>课程表管理系统</title>
+    <script src="https://cdn.jsdmirror.cn/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <style>
+        @import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Poppins, sans-serif
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            background: #23242a;
+            position: relative;
+            overflow: hidden;
+        }
+        .box {
+            width: 90%;
+            max-width: 448px;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 10
+        }
+        form {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%
+        }
+        .inputBox {
+            position: relative;
+            width: 100%;
+            max-width: 368px;
+            height: 56px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            color: #aeb6c2
+        }
+        .inputBox>input {
+            background: rgba(255,255,255,0.4)!important
+        }
+        #btn-submit {
+            border: none;
+            outline: 0;
+            padding: 11px 25px;
+            background: #00d2d6;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 20px;
+            line-height: 32px;
+            font-weight: 700;
+            width: 100%;
+            max-width: 368px;
+            user-select: none;
+            margin-bottom: 16px
+        }
+        #btn-submit:active {
+            opacity: .8
+        }
+        .inputBox input {
+            position: relative;
+            padding: 11px 24px;
+            width: 100%;
+            outline: 0;
+            box-shadow: none;
+            border: none;
+            letter-spacing: .05em;
+            transition: .5s;
+            background-color: #f3f6f8;
+            font-size: 18px;
+            line-height: 32px;
+            font-weight: 400;
+            color: #393f4d
+        }
+        .inputBox input::placeholder {
+            color: #aeb6c2
+        }
+        #info-success {
+            font-size: 24px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .info-popup {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: #fff;
+            z-index: 1000;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999
+        }
+        .loader {
+            border: 8px solid rgba(255,255,255,.2);
+            border-left: 8px solid #00d2d6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite
+        }
+        @keyframes spin {
+            0% { transform: rotate(0) }
+            100% { transform: rotate(360deg) }
+        }
+        .title {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+        .subtitle {
+            color: #aeb6c2;
+            font-size: 1em;
+            margin-bottom: 2em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="info-popup" class="info-popup"></div>
+    <div class="overlay" id="overlay">
+        <div class="loader"></div>
+    </div>
+    <div class="box">
+        <h1 class="title">课程表管理系统</h1>
+        <p class="subtitle">请输入机器人发送给您的识别码进行登录</p>
+        <form autocomplete="off">
+            <div class="inputBox">
+                <input type="text" required="required" name="code" placeholder="请输入识别码">
+            </div>
+            <div id="info-success">登录成功</div>
+            <button type="button" id="btn-submit">登录</button>
+        </form>
+    </div>
+    <script>
+        $(document).ready(() => {
+            $('#btn-submit').on('click', () => {
+                const code = $('input[name="code"]').val().trim();
+                if (!code) {
+                    return popInfo('error', '请输入识别码');
+                }
+
+                toggleOverlay(true);
+                fetch(window.location.href.replace('/login/', '/code/'), {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    toggleOverlay(false);
+                    if (res.code !== 200) {
+                        throw new Error(res.msg || '未知错误');
+                    }
+                    popInfo('success', '登录成功');
+                    $('#btn-submit, .inputBox').hide();
+                    $('#info-success').show();
+                    setTimeout(() => {
+                        window.location.href = '/manage';
+                    }, 1500);
+                })
+                .catch(err => {
+                    toggleOverlay(false);
+                    popInfo('error', '登录失败，' + err.message);
+                });
+            });
+        });
+
+        const popInfo = (type, msg) => {
+            const colors = {
+                error: 'red',
+                warn: 'yellow',
+                success: 'green'
+            };
+            $('#info-popup')
+                .css('background-color', colors[type] || colors.success)
+                .text(msg)
+                .fadeIn()
+                .delay(3000)
+                .fadeOut();
+        };
+
+        const toggleOverlay = show => $('#overlay').css('display', show ? 'flex' : 'none');
+
+        $(window).on('load', () => toggleOverlay(false));
+    </script>
+</body>
+</html> 

@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 
 const _path = process.cwd().replace(/\\/g, '/')
 
@@ -8,5 +9,12 @@ const pluginName = path.basename(path.join(import.meta.url, '../../'))
 const pluginRoot = path.join(_path, 'plugins', pluginName)
 // 插件资源目录
 const pluginResources = path.join(pluginRoot, 'resources')
+// 服务器资源目录
+const serverResources = path.join(pluginResources, 'server')
 
-export { _path, pluginName, pluginRoot, pluginResources }
+// 确保服务器资源目录存在
+if (!fs.existsSync(serverResources)) {
+    fs.mkdirSync(serverResources, { recursive: true })
+}
+
+export { _path, pluginName, pluginRoot, pluginResources, serverResources }

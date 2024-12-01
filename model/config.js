@@ -18,6 +18,10 @@ export class Config {
       enable: false,
       advance: 10,
       mode: 'private'
+    },
+    server: {
+      port: 3000,
+      allowLogin: true
     }
   }
 
