@@ -26,7 +26,7 @@ export default class Utils {
   // 获取当前教学周
   static getCurrentWeek(startDate) {
     if (!startDate || !moment(startDate).isValid()) {
-      logger.error('[Class-Plugin] 无效的开学日期')
+      logger.mark('[Class-Plugin] 无效的开学日期')
       return 1
     }
 
@@ -82,7 +82,8 @@ export default class Utils {
         return weeks
       }
     } catch (err) {
-      logger.error(`[Class-Plugin] 解析周数失败: ${err}`)
+      logger.mark(`[Class-Plugin] 解析周数失败: ${err}`)
+      return []
     }
 
     return []

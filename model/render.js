@@ -4,7 +4,6 @@ import fs from 'fs'
 import path from 'path'
 import { Config } from './config.js'
 import moment from 'moment'
-import logger from './logger.js'
 
 export class Render {
   static async render(path, params, options = {}) {

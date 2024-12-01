@@ -125,7 +125,8 @@ export class Class extends plugin {
         await this.addSchedule(e)
         tempCourseData.delete(e.user_id)
       } catch (err) {
-        logger.error(`[Class-Plugin] 导入临时课程数据失败: ${err}`)
+        logger.mark(`[Class-Plugin] 导入临时课程数据失败: ${err}`)
+        return false
       }
     }
 
@@ -175,7 +176,7 @@ export class Class extends plugin {
       await e.reply(segment.image(`file:///${imagePath}`))
       return true
     } catch (err) {
-      logger.error(`[Class-Plugin] 查看课表失败: ${err}`)
+      logger.mark(`[Class-Plugin] 查看课表失败: ${err}`)
       await e.reply(`查看课表失败: ${err.message}`)
       return true
     }
@@ -225,7 +226,7 @@ export class Class extends plugin {
       await e.reply(segment.image(`file:///${imagePath}`))
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 查看本周课表失败: ${err}`)
+      logger.mark(`[Class-Plugin] 查看本周课表失败: ${err}`)
       await e.reply('生成课表失败，请稍后重试')
       return true
     }
@@ -325,12 +326,12 @@ export class Class extends plugin {
           `🗓️ 周数：${weeks}`
         ].join('\n'))
       } else {
-        throw new Error('保存课程数���失败')
+        throw new Error('保存课程数失败')
       }
 
       return true
     } catch (err) {
-      logger.error(`[Class-Plugin] 添加课程失败: ${err}`)
+      logger.mark(`[Class-Plugin] 添加课程失败: ${err}`)
       await e.reply('添加课程失败，请稍后重试')
       return true
     }
@@ -359,7 +360,7 @@ export class Class extends plugin {
       await e.reply('删除课程成功')
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 删除课程失败: ${err}`)
+      logger.mark(`[Class-Plugin] 删除课程失败: ${err}`)
       await e.reply('删除课程失败，请稍后重试')
       return true
     }
@@ -390,7 +391,7 @@ export class Class extends plugin {
       await e.reply('修改课程成功')
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 修改课程失败: ${err}`)
+      logger.mark(`[Class-Plugin] 修改课程失败: ${err}`)
       await e.reply('修改课程失败，请稍后重试')
       return true
     }
@@ -427,7 +428,7 @@ export class Class extends plugin {
       await e.reply('调课成功')
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 调课失败: ${err}`)
+      logger.mark(`[Class-Plugin] 调课失败: ${err}`)
       await e.reply('调课失败，请稍后重试')
       return true
     }
@@ -454,7 +455,7 @@ export class Class extends plugin {
       await e.reply('取消调课成功')
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 取消调课失败: ${err}`)
+      logger.mark(`[Class-Plugin] 取消调课失败: ${err}`)
       await e.reply('取消调课失败，请稍后重试')
       return true
     }
@@ -479,7 +480,7 @@ export class Class extends plugin {
       await e.reply(records.join('\n'))
       return true
     } catch(err) {
-      logger.error(`[Class-Plugin] 查看调课记录失败: ${err}`)
+      logger.mark(`[Class-Plugin] 查看调课记录失败: ${err}`)
       await e.reply('查看调课记录失败，请稍后重试')
       return true
     }

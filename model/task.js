@@ -11,7 +11,7 @@ export class Task {
 
   init() {
     if (!schedule?.scheduleJob) {
-      logger.error('[Class-Plugin] node-schedule 模块加载失败')
+      logger.mark('[Class-Plugin] node-schedule 模块加载失败')
       return
     }
     
@@ -46,7 +46,7 @@ export class Task {
         }
       }
     } catch (err) {
-      logger.error(`[Class-Plugin] 检查课程提醒失败: ${err}`)
+      logger.mark(`[Class-Plugin] 检查课程提醒失败: ${err}`)
     }
   }
 
@@ -65,7 +65,7 @@ export class Task {
                Array.isArray(course.weeks) &&
                course.weeks.includes(week)
       } catch (err) {
-        logger.error(`[Class-Plugin] 过滤今日课程失败: ${err}`)
+        logger.mark(`[Class-Plugin] 过滤今日课程失败: ${err}`)
         return false
       }
     })
@@ -84,7 +84,7 @@ export class Task {
       const diffMinutes = Math.abs(now.diff(remindTime, 'minutes'))
       return diffMinutes === 0
     } catch (err) {
-      logger.error(`[Class-Plugin] 检查提醒时间失败: ${err}`)
+      logger.mark(`[Class-Plugin] 检查提醒时间失败: ${err}`)
       return false
     }
   }
@@ -102,7 +102,7 @@ export class Task {
       ].join('\n')
 
       if (!Bot) {
-        logger.error('[Class-Plugin] Bot 未初始化')
+        logger.mark('[Class-Plugin] Bot 未初始化')
         return
       }
 
@@ -124,15 +124,15 @@ export class Task {
             ])
           } else {
             // 找不到群时降级为私聊
-            await Bot.pickUser(userId).sendMsg(msg)
+            await this.sendPrivateRemind(course)
           }
         } catch (err) {
-          logger.error(`[Class-Plugin] 群发提醒失败，降级为私聊: ${err}`)
-          await Bot.pickUser(userId).sendMsg(msg)
+          logger.mark(`[Class-Plugin] 群发提醒失败，降级为私聊: ${err}`)
+          await this.sendPrivateRemind(course)
         }
       }
     } catch (err) {
-      logger.error(`[Class-Plugin] 发送提醒失败: ${err}`)
+      logger.mark(`[Class-Plugin] 发送提醒失败: ${err}`)
     }
   }
 } 
