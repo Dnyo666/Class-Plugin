@@ -233,7 +233,7 @@
                 </div>
                 <div class="form-group">
                     <label>周数</label>
-                    <input type="number" name="startWeek" placeholder="开周" required>
+                    <input type="number" name="startWeek" placeholder="开��" required>
                     <input type="number" name="endWeek" placeholder="结束周" required>
                     <select name="type">
                         <option value="0">每周</option>
@@ -272,16 +272,10 @@
             return localStorage.getItem('token');
         }
 
-        // 设置token
-        function setToken(token) {
-            localStorage.setItem('token', token);
-        }
-
         // 检查登录状态
         function checkLogin() {
             const token = getToken();
             if (!token) {
-                alert('请先登录');
                 window.location.href = '/';
                 return false;
             }
@@ -301,7 +295,7 @@
             });
             const data = await response.json();
             if (data.code === 401) {
-                alert('请先登录');
+                localStorage.removeItem('token');
                 window.location.href = '/';
                 return null;
             }

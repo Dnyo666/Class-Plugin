@@ -190,6 +190,7 @@
                     if (res.code !== 200) {
                         throw new Error(res.msg || '未知错误');
                     }
+                    localStorage.setItem('token', res.data.token);
                     popInfo('success', '登录成功');
                     $('#btn-submit, .inputBox').hide();
                     $('#info-success').show();

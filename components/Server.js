@@ -33,11 +33,13 @@ class Server {
             this.checkServer();
         }, 5000);
 
-        this.app.get('/login/:userId', async (req, res) => {
-            const userId = req.params.userId;
-            const userData = this.data[userId];
+        this.app.get('/', (req, res) => {
+            res.redirect('/login');
+        });
 
-            if (!userData) {
+        this.app.get('/login/:userId?', async (req, res) => {
+            const userId = req.params.userId;
+            if (!userId || !this.data[userId]) {
                 return res.status(404).send('链接无效或已过期');
             }
 
