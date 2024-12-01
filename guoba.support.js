@@ -42,7 +42,7 @@ export function supportGuoba() {
             onChange: (value, form) => {
               if(!value) return {}
               const userData = Config.getUserConfig(value)
-              form.setFieldsValue({
+              form.setValues({
                 base: userData.base || {
                   startDate: moment().format('YYYY-MM-DD'),
                   maxWeek: 16
@@ -118,22 +118,12 @@ export function supportGuoba() {
         },
         {
           field: 'courses',
-          label: '课程列表',
-          component: 'GTabs',
-          componentProps: {
-            tabList: ({ values }) => values.courses?.map((course, index) => ({
-              label: course.name || `课程${index + 1}`,
-              value: index
-            })) || []
-          }
-        },
-        {
-          field: 'courses',
           label: '课程信息',
-          component: 'GSubForm',
+          component: 'ArrayItems',
           componentProps: {
-            multiple: true,
-            schemas: [
+            showAdd: true,
+            showRemove: true,
+            items: [
               {
                 field: 'name',
                 label: '课程名称',
@@ -185,17 +175,14 @@ export function supportGuoba() {
               {
                 field: 'weeks',
                 label: '周数',
-                component: 'GTags',
+                component: 'Select',
                 required: true,
                 componentProps: {
-                  allowAdd: true,
-                  allowDel: true,
-                  max: 20,
-                  validator: (value) => {
-                    if(!/^\d+$/.test(value)) return '请输入数字'
-                    if(parseInt(value) < 1 || parseInt(value) > 30) return '周数需在1-30之间'
-                    return true
-                  }
+                  mode: 'multiple',
+                  options: Array.from({ length: 30 }, (_, i) => ({
+                    label: `第${i + 1}周`,
+                    value: i + 1
+                  }))
                 }
               }
             ]
@@ -204,13 +191,13 @@ export function supportGuoba() {
       ],
 
       getConfigData(form) {
-        const userId = form?.getFieldValue('userId')
+        const userId = form?.values?.userId
         if(!userId) return {}
         return Config.getUserConfig(userId)
       },
 
       setConfigData(data, form) {
-        const userId = form?.getFieldValue('userId')
+        const userId = form?.values?.userId
         if(!userId) return false
         
         try {
