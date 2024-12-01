@@ -5,6 +5,7 @@ import { Utils } from './utils.js'
 
 export class Task {
   constructor() {
+    this.lastCheck = new Map()
     this.init()
   }
 
@@ -30,7 +31,17 @@ export class Task {
         const todayCourses = this.getTodayCourses(userData)
         for (const course of todayCourses) {
           if (this.shouldRemind(course, now, userData.remind.advance)) {
+            // 检查是否已经提醒过
+            const key = `${userId}_${course.id}_${now.format('YYYY-MM-DD')}`
+            if (this.lastCheck.has(key)) continue
+
             await this.sendRemind(userId, course, userData.remind.mode)
+            this.lastCheck.set(key, true)
+
+            // 24小时后清除记录
+            setTimeout(() => {
+              this.lastCheck.delete(key)
+            }, 24 * 60 * 60 * 1000)
           }
         }
       }
@@ -64,14 +75,14 @@ export class Task {
     try {
       if (!course?.section || typeof course.section !== 'string') return false
 
-      const [startSection] = course.section.split('-').map(Number)
       const courseTime = Utils.parseTime(course.section)
       if (!courseTime?.start) return false
 
       const remindTime = moment(now.format('YYYY-MM-DD ') + courseTime.start, 'YYYY-MM-DD HH:mm')
         .subtract(advance || 10, 'minutes')
       
-      return now.isSame(remindTime, 'minute')
+      const diffMinutes = Math.abs(now.diff(remindTime, 'minutes'))
+      return diffMinutes === 0
     } catch (err) {
       logger.error(`[Class-Plugin] 检查提醒时间失败: ${err}`)
       return false

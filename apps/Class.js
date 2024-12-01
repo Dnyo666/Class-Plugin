@@ -131,45 +131,101 @@ export class Class extends plugin {
     try {
       const params = e.msg.match(/课程\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+)/i)
       if (!params) {
-        await e.reply('格式错误，请按照: #添加课程 课程名 教师 教室 星期 节数 周数\n例如: #添加课程 高数 张三 A101 周一 1-2 1-16周')
+        await e.reply([
+          '格式错误，请按照以下格式添加课程：',
+          '#添加课程 课程名 教师 教室 星期 节数 周数',
+          '',
+          '例如：',
+          '#添加课程 高数 张三 A101 周一 1-2 1-16周',
+          '',
+          '说明：',
+          '- 星期：周一/周二/周三/周四/周五',
+          '- 节数：1-2/3-4/5-6/7-8/9-10',
+          '- 周数：1-16周/单周/双周/1,3,5,7周'
+        ].join('\n'))
         return true
       }
 
       const [, name, teacher, location, weekDay, section, weeks] = params
       const weekDayMap = {
-        '周一': 1, '周二': 2, '周三': 3, '周四': 4, '周五': 5
+        '周一': 1, '周二': 2, '周三': 3, '周四': 4, '周五': 5,
+        '星期一': 1, '星期二': 2, '星期三': 3, '星期四': 4, '星期五': 5,
+        '1': 1, '2': 2, '3': 3, '4': 4, '5': 5
       }
       
-      if (!weekDayMap[weekDay]) {
+      const mappedWeekDay = weekDayMap[weekDay]
+      if (!mappedWeekDay) {
         await e.reply('星期格式错误，请使用: 周一/周二/周三/周四/周五')
         return true
       }
 
-      const sectionMatch = section.match(/(\d+)-(\d+)/)
-      if (!sectionMatch) {
-        await e.reply('节数格式错误，请使用范围格式，如: 1-2')
+      const sectionMatch = section.match(/^(\d+)-(\d+)$/)
+      if (!sectionMatch || !Utils.parseTime(section)) {
+        await e.reply([
+          '节数格式错误，支持的节数：',
+          '1-2节：08:00-09:40',
+          '3-4节：10:00-11:40',
+          '5-6节：14:00-15:40',
+          '7-8节：16:00-17:40',
+          '9-10节：19:00-20:40'
+        ].join('\n'))
         return true
       }
 
       const weekConfig = Utils.parseWeeks(weeks)
       if (!weekConfig.length) {
-        await e.reply('周数格式错误，支持:\n1. 单周/双周\n2. 1-16周\n3. 1,3,5,7周')
+        await e.reply([
+          '周数格式错误，支持以下格式：',
+          '1. 单周/双周',
+          '2. 1-16周',
+          '3. 1,3,5,7周',
+          '',
+          '例如：1-16周、单周、1,3,5周'
+        ].join('\n'))
         return true
       }
 
       let userData = Config.getUserConfig(e.user_id)
-      userData.courses.push({
+      if (!userData.courses) userData.courses = []
+
+      // 检查时间冲突
+      const hasConflict = userData.courses.some(c => 
+        c.weekDay === mappedWeekDay && 
+        c.section === section &&
+        c.weeks.some(w => weekConfig.includes(w))
+      )
+
+      if (hasConflict) {
+        await e.reply('该时间段已有课程，请检查是否冲突')
+        return true
+      }
+
+      const newCourse = {
         id: Utils.generateId(),
         name,
         teacher,
         location,
-        weekDay: weekDayMap[weekDay],
-        section: sectionMatch[0],
+        weekDay: mappedWeekDay,
+        section,
         weeks: weekConfig
-      })
+      }
 
-      Config.setUserConfig(e.user_id, userData)
-      await e.reply('添加课程成功')
+      userData.courses.push(newCourse)
+
+      if (Config.setUserConfig(e.user_id, userData)) {
+        await e.reply([
+          '✅ 添加课程成功！',
+          '',
+          '课程信息：',
+          `📚 课程：${name}`,
+          `👨‍🏫 教师：${teacher}`,
+          `📍 教室：${location}`,
+          `📅 时间：周${['一','二','三','四','五'][mappedWeekDay-1]} ${section}节`,
+          `🗓️ 周数：${weeks}`
+        ].join('\n'))
+      } else {
+        throw new Error('保存课程数据失败')
+      }
       return true
     } catch(err) {
       logger.error(`[Class-Plugin] 添加课程失败: ${err}`)

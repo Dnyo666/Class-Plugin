@@ -37,37 +37,50 @@ export class Setting extends plugin {
     async startConfig(e) {
         logger.mark(`[Class-Plugin] 触发初始化配置命令: ${e.msg}`)
         try {
-            const config = Config.getUserConfig(e.user_id)
-            const isInitialized = config?.base?.startDate && config?.base?.maxWeek
-
-            if (isInitialized) {
-                await e.reply([
-                    '您已完成课表配置，当前设置：',
-                    `开学日期：${config.base.startDate}`,
-                    `学期周数：${config.base.maxWeek}周`,
-                    '',
-                    '如需修改，请使用以下命令：',
-                    '#设置开学日期 2024-02-26',
-                    '#设置学期周数 16'
-                ].join('\n'))
-            } else {
-                await e.reply([
-                    '欢迎使用课表配置向导！',
-                    '请按照以下步骤进行设置：',
-                    '',
-                    '1️⃣ 设置开学日期',
-                    '命令：#设置开学日期 2024-02-26',
-                    '',
-                    '2️⃣ 设置学期周数',
-                    '命令：#设置学期周数 16',
-                    '',
-                    '完成以上设置后，您就可以：',
-                    '- 使用 #添加课程 添加课程',
-                    '- 使用 #导入课表 导入课表数据',
-                    '- 使用 #课表 查看课表'
-                ].join('\n'))
+            const config = Config.getUserConfig(e.user_id) || {}
+            config.base = config.base || {}
+            config.courses = config.courses || []
+            config.remind = config.remind || {
+                enable: false,
+                advance: 10,
+                mode: 'private'
             }
-            return true
+            
+            // 保存初始配置
+            if (Config.setUserConfig(e.user_id, config)) {
+                const isInitialized = config.base.startDate && config.base.maxWeek
+
+                if (isInitialized) {
+                    await e.reply([
+                        '您已完成课表配置，当前设置：',
+                        `开学日期：${config.base.startDate}`,
+                        `学期周数：${config.base.maxWeek}周`,
+                        '',
+                        '如需修改，请使用以下命令：',
+                        '#设置开学日期 2024-02-26',
+                        '#设置学期周数 16'
+                    ].join('\n'))
+                } else {
+                    await e.reply([
+                        '欢迎使用课表配置向导！',
+                        '请按照以下步骤进行设置：',
+                        '',
+                        '1️⃣ 设置开学日期',
+                        '命令：#设置开学日期 2024-02-26',
+                        '',
+                        '2️⃣ 设置学期周数',
+                        '命令：#设置学期周数 16',
+                        '',
+                        '完成以上设置后，您就可以：',
+                        '- 使用 #添加课程 添加课程',
+                        '- 使用 #导入课表 导入课表数据',
+                        '- 使用 #课表 查看课表'
+                    ].join('\n'))
+                }
+                return true
+            } else {
+                throw new Error('保存配置失败')
+            }
         } catch (err) {
             logger.error(`[Class-Plugin] 初始化配置失败: ${err}`)
             await e.reply('配置失败，请稍后重试')
