@@ -23,10 +23,10 @@ export class Help extends plugin {
         });
     }
 
-    async help(e) {
+    async help() {
         try {
             // 检查用户是否已初始化
-            const userData = Config.getUserConfig(e.user_id);
+            const userData = Config.getUserConfig(this.e.user_id);
             const isInitialized = userData?.base?.startDate && userData?.base?.maxWeek;
 
             const helpCfg = {
@@ -158,7 +158,7 @@ export class Help extends plugin {
         } catch (err) {
             this.logger.error(`[Class-Plugin] 生成帮助图片失败: ${err}`);
             await this.reply('生成帮助图片失败，请稍后重试');
-            return true;
+            return false;
         }
     }
 }

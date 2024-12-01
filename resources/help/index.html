@@ -16,21 +16,17 @@
       {{each helpGroup group}}
       <div class="help-group">{{group.group}}</div>
       <div class="help-table">
-        {{set len = group.list.length}}
-        {{set row = Math.ceil(len / colCount)}}
-        {{each Array(row) r idx}}
         <div class="tr">
-          {{each Array(colCount) c i}}
-          {{set item = group.list[idx * colCount + i]}}
-          {{if item}}
+          {{each group.list item idx}}
+          {{if idx % colCount === 0 && idx !== 0}}
+          </div><div class="tr">
+          {{/if}}
           <div class="td">
             <span class="help-title">{{item.title}}</span>
             <span class="help-desc">{{item.desc}}</span>
           </div>
-          {{/if}}
           {{/each}}
         </div>
-        {{/each}}
       </div>
       {{/each}}
     </div>
