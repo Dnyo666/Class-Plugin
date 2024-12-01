@@ -9,6 +9,7 @@ export class Server {
   constructor(port = 3000) {
     this.app = express()
     this.port = port
+    this.data = new Map() // 存储临时数据
     this.setupMiddleware()
     this.setupRoutes()
   }
@@ -160,5 +161,22 @@ export class Server {
       this.server.close()
       logger.mark('[Class-Plugin] 服务器已停止')
     }
+  }
+
+  // 生成验证码
+  static generateVerifyCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase()
+  }
+
+  // 验证用户
+  verifyUser(userId, code) {
+    const userData = this.data.get(userId)
+    if (!userData) return false
+    if (userData.code !== code) return false
+    if (Date.now() - userData.timestamp > 10 * 60 * 1000) {
+      this.data.delete(userId)
+      return false
+    }
+    return true
   }
 } 

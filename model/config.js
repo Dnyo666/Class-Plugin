@@ -229,4 +229,19 @@ export class Config {
       return false
     }
   }
+
+  // 获取所有用户列表
+  static getAllUsers() {
+    try {
+      if (!fs.existsSync(this.dataDir)) {
+        return []
+      }
+      return fs.readdirSync(this.dataDir)
+        .filter(file => file.endsWith('.json'))
+        .map(file => file.replace('.json', ''))
+    } catch (err) {
+      logger.mark(`[Class-Plugin] 获取用户列表失败: ${err}`)
+      return []
+    }
+  }
 } 

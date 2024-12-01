@@ -57,38 +57,33 @@ export class Class extends plugin {
 
   // 登录功能
   async login(e) {
-    const verifyCode = Server.generateVerifyCode();
-    Server.data[e.user_id] = {
-      user_id: e.user_id,
-      verify_code: verifyCode,
-      created_at: Date.now()
-    };
+    try {
+      const verifyCode = Server.generateVerifyCode()
+      const userId = e.user_id
 
-    await e.reply([
-      '请复制登录地址到浏览器打开：',
-      `http://localhost:3000/login/${e.user_id}`,
-      `您的识别码为：${verifyCode}`,
-      '登录地址和识别码10分钟内有效'
-    ].join('\n'));
+      // 生成登录链接
+      const loginUrl = `http://localhost:3000/login?userId=${userId}&code=${verifyCode}`
+      
+      // 保存验证信息
+      server.data.set(userId, {
+        code: verifyCode,
+        timestamp: Date.now()
+      })
 
-    // 等待token生成
-    const timeout = Date.now() + 10 * 60 * 1000;
-    while (!Server.data[e.user_id]?.token && Date.now() < timeout) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 发送验证码和链接
+      await e.reply([
+        '课表管理系统登录\n',
+        `验证码：${verifyCode}\n`,
+        `登录链接：${loginUrl}\n`,
+        '验证码10分钟内有效'
+      ].join(''))
+
+      return true
+    } catch (err) {
+      logger.mark(`[Class-Plugin] 登录失败: ${err}`)
+      await e.reply('登录失败，请稍后重试')
+      return false
     }
-
-    if (!Server.data[e.user_id]?.token) {
-      delete Server.data[e.user_id];
-      return await e.reply('在线登录超时，请重新登录');
-    }
-
-    // 保存用户token
-    let userData = Config.getUserConfig(e.user_id);
-    if (!userData) userData = {};
-    userData.token = Server.data[e.user_id].token;
-    Config.setUserConfig(e.user_id, userData);
-
-    return await e.reply('登录成功！现在您可以在网页上管理您的课表了');
   }
 
   // 初始化检查
