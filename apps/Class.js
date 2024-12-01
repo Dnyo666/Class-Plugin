@@ -2,7 +2,7 @@ import plugin from '../../../lib/plugins/plugin.js'
 import { Config } from '../model/config.js'
 import Utils from '../utils.js'
 import { Render } from '../model/render.js'
-import Server from '../components/Server.js'
+import { Server } from '../components/Server.js'
 import moment from 'moment'
 
 let tempCourseData = new Map() // 临时存储用户的课程数据
