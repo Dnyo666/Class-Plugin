@@ -68,9 +68,8 @@ class Server {
     }
 
     async checkServer() {
-        const config = Config.getDefConfig();
-        const allowLogin = config?.server?.allowLogin ?? true;
-        const port = config?.server?.port ?? 3000;
+        const allowLogin = Config.defaultConfig?.server?.allowLogin ?? true;
+        const port = Config.defaultConfig?.server?.port ?? 3000;
 
         if (allowLogin && !this.server) {
             this.server = this.app.listen(port, () => {
