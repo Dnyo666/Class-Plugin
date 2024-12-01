@@ -4,80 +4,71 @@ body {
   background: url("../common/theme/bg-01.jpg");
 }
 .container {
-  background: url(../common/theme/main-01.png) top left no-repeat;
-  background-size: 100% auto;
-  width: 830px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
 }
 .head-box {
-  margin: 60px 0 0 0;
-  padding-bottom: 0;
+  padding: 20px;
+  border-radius: 15px;
+  background: linear-gradient(45deg, #3498db, #2ecc71);
+  color: #fff;
+  text-align: center;
 }
 .head-box .title {
-  font-size: 50px;
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.head-box .label {
+  font-size: 16px;
+  opacity: 0.8;
 }
 .cont-box {
   border-radius: 15px;
   margin-top: 20px;
-  margin-bottom: 20px;
-  overflow: hidden;
-  box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
-  position: relative;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 .help-group {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
-  padding: 15px 15px 10px 20px;
+  padding: 15px 20px;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
 }
 .help-table {
-  text-align: center;
-  border-collapse: collapse;
-  margin: 0;
-  border-radius: 0 0 10px 10px;
-  display: table;
-  overflow: hidden;
-  width: 100%;
-  color: #fff;
+  padding: 10px 15px;
 }
 .help-table .tr {
-  display: table-row;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
-.help-table .td,
-.help-table .th {
-  font-size: 14px;
-  display: table-cell;
-  box-shadow: 0 0 1px 0 #888 inset;
-  padding: 12px 0 12px 50px;
-  line-height: 24px;
-  position: relative;
-  text-align: left;
+.help-table .td {
+  flex: 1;
+  margin: 5px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
-.help-table .tr:last-child .td {
-  padding-bottom: 12px;
-}
-.help-table .th {
-  background: rgba(34, 41, 51, 0.5);
-}
-.help-icon {
-  width: 40px;
-  height: 40px;
-  display: block;
-  position: absolute;
-  background: url("icon.png") 0 0 no-repeat;
-  background-size: 500px auto;
-  border-radius: 5px;
-  left: 6px;
-  top: 12px;
-  transform: scale(0.85);
+.help-table .td:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 .help-title {
   display: block;
-  color: #d3bc8e;
   font-size: 16px;
-  line-height: 24px;
+  color: #2c3e50;
+  margin-bottom: 5px;
 }
 .help-desc {
   display: block;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 14px;
+  color: #7f8c8d;
+  line-height: 1.4;
 }
 /*# sourceMappingURL=index.css.map */
