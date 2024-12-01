@@ -48,6 +48,23 @@ export class Class extends plugin {
     })
   }
 
+  // 初始化检查
+  async checkInit(e) {
+    const config = Config.getUserConfig(e.user_id)
+    if (!config?.base?.startDate || !config?.base?.maxWeek) {
+        await e.reply([
+            '⚠️ 请先完成课表初始化配置',
+            '使用 #开始配置课表 开始设置',
+            '',
+            '您需要设置：',
+            '1. 开学日期',
+            '2. 学期周数'
+        ].join('\n'))
+        return false
+    }
+    return true
+  }
+
   // 查看课表
   async viewSchedule(e) {
     try {
@@ -76,6 +93,8 @@ export class Class extends plugin {
 
   // 本周课表
   async thisWeekSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const currentWeek = Utils.getCurrentWeek()
       const userData = Config.getUserConfig(e.user_id)
@@ -107,6 +126,8 @@ export class Class extends plugin {
 
   // 添加课程
   async addSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const params = e.msg.match(/课程\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+)/i)
       if (!params) {
@@ -159,6 +180,8 @@ export class Class extends plugin {
 
   // 删除课程
   async deleteSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const courseId = e.msg.match(/删除课程\s*(\d+)/)[1]
       let userData = Config.getUserConfig(e.user_id)
@@ -186,6 +209,8 @@ export class Class extends plugin {
 
   // 修改课程
   async editSchedule(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const [, id, content] = e.msg.match(/修改课程\s*(\d+)\s*(.+)/)
       let userData = Config.getUserConfig(e.user_id)
@@ -274,6 +299,8 @@ export class Class extends plugin {
 
   // 调课记录
   async changeRecord(e) {
+    if (!await this.checkInit(e)) return true
+
     try {
       const userData = Config.getUserConfig(e.user_id)
       if(!userData.adjustments.length) {
