@@ -87,7 +87,7 @@ export class Render {
           helpCfg,
           helpGroup: helpList,
           colCount: helpCfg.colCount || 3,
-          style: this.getStyle()
+          style: await this.getStyle()
         })
 
         await page.setContent(html)
@@ -116,7 +116,7 @@ export class Render {
         const html = await this.getHtml('schedule/index', {
           courses,
           currentWeek,
-          weekDays: ['周一', '周二', '周三', '周四', '周五'],
+          weekDays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
           sections: Array(8).fill(0).map((_, i) => `第${i + 1}节`),
           styles: this.getCourseStyles()
         })
@@ -137,14 +137,14 @@ export class Render {
     })
   }
 
-  getStyle() {
+  async getStyle() {
     try {
       const configPath = path.join(_path, 'plugins', 'class-plugin', 'resources', 'help', 'imgs', 'config.js')
       if (!fs.existsSync(configPath)) {
         return this.getDefaultStyle()
       }
-      const styleConfig = require(configPath).style
-      return Object.entries(styleConfig)
+      const { style } = require(configPath)
+      return Object.entries(style)
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
     } catch (error) {
@@ -155,11 +155,49 @@ export class Render {
 
   getDefaultStyle() {
     return `
-      body { font-family: "Microsoft YaHei", sans-serif; }
-      .container { padding: 20px; }
-      .help-title { font-size: 24px; margin-bottom: 10px; }
-      .help-group { font-size: 18px; margin: 15px 0; }
-      .help-item { padding: 10px; margin: 5px 0; background: #f5f5f5; border-radius: 5px; }
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family: "Microsoft YaHei", sans-serif;
+        background: #f5f6fa;
+      }
+      #container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .help-title {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      .help-group {
+        font-size: 18px;
+        color: #34495e;
+        margin: 20px 0 10px;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #3498db;
+      }
+      .help-item {
+        background: white;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .help-command {
+        font-weight: bold;
+        color: #2980b9;
+      }
+      .help-desc {
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-top: 5px;
+      }
     `
   }
 

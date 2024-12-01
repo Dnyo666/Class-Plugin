@@ -1,45 +1,23 @@
-import fs from 'node:fs';
-import Init from './model/init.js'
-import { Task } from './model/task.js'
-import { Version } from './model/version.js'
+import fs from 'node:fs'
+import { Config } from './model/config.js'
 
-if (!global.segment) {
-  global.segment = (await import("oicq")).segment;
+// 确保必要的目录存在
+const _path = process.cwd()
+const pluginPath = _path + '/plugins/class-plugin'
+const tempPath = path.join(_path, 'temp')
+
+if (!fs.existsSync(tempPath)) {
+  fs.mkdirSync(tempPath, { recursive: true })
 }
 
-let ret = [];
+// 初始化配置
+Config.init()
 
-logger.info(logger.yellow("- 正在载入 CLASS-PLUGIN"));
+// 导出插件
+export * from './apps/Class.js'
+export * from './apps/Help.js'
+export * from './apps/Notify.js'
 
-// 版本检查
-const version = new Version()
-await version.check()
-
-// 初始化定时任务
-new Task()
-
-const files = fs
-  .readdirSync('./plugins/class-plugin/apps')
-  .filter((file) => file.endsWith('.js'));
-
-files.forEach((file) => {
-  ret.push(import(`./apps/${file}`))
-})
-
-ret = await Promise.allSettled(ret);
-
-let apps = {};
-for (let i in files) {
-  let name = files[i].replace('.js', '');
-
-  if (ret[i].status !== 'fulfilled') {
-    logger.error(`载入插件错误：${logger.red(name)}`);
-    logger.error(ret[i].reason);
-    continue;
-  }
-  apps[name] = ret[i].value[Object.keys(ret[i].value)[0]];
-}
-
-logger.info(logger.green("- CLASS-PLUGIN 载入成功"));
-
-export { apps };
+// 检查更新
+let packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+logger.info(`[Class-Plugin] 课表插件 v${packageJson.version} 初始化完成`)
