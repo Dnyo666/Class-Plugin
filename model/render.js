@@ -57,7 +57,7 @@ export class Render {
 
       return this.browser
     } catch (error) {
-      console.error(`[Class-Plugin] 初始化浏览器失败: ${error}`)
+      logger.error(`[Class-Plugin] 初始化浏览器失败: ${error}`)
       this.browser = null
       throw error
     } finally {
@@ -70,7 +70,7 @@ export class Render {
       try {
         await this.browser.close()
       } catch (error) {
-        console.error(`[Class-Plugin] 关闭浏览器失败: ${error}`)
+        logger.error(`[Class-Plugin] 关闭浏览器失败: ${error}`)
       }
       this.browser = null
     }
@@ -81,7 +81,7 @@ export class Render {
       try {
         return await renderFn()
       } catch (error) {
-        console.error(`[Class-Plugin] 渲染重试 ${i + 1}/${maxRetries}: ${error}`)
+        logger.error(`[Class-Plugin] 渲染重试 ${i + 1}/${maxRetries}: ${error}`)
         await this.closeBrowser()
         if (i === maxRetries - 1) throw error
         await new Promise(resolve => setTimeout(resolve, this.retryDelay))
@@ -103,8 +103,14 @@ export class Render {
           style: await this.getStyle()
         })
 
+        logger.mark(`[Class-Plugin] 生成的HTML内容: ${html}`)
+
         await page.setContent(html)
         const body = await page.$('#container')
+        if (!body) {
+          throw new Error('找不到容器元素')
+        }
+
         const buff = await body.screenshot({
           type: 'png',
           omitBackground: true
@@ -113,6 +119,9 @@ export class Render {
         const tmpPath = path.join(_path, 'plugins', 'class-plugin', 'temp', `help_${Date.now()}.png`)
         fs.writeFileSync(tmpPath, buff)
         return tmpPath
+      } catch (error) {
+        logger.error(`[Class-Plugin] 帮助渲染失败: ${error}`)
+        throw error
       } finally {
         await page.close()
       }
@@ -121,11 +130,13 @@ export class Render {
 
   async getStyle() {
     try {
-      return Object.entries(style)
+      const styleText = Object.entries(style)
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
+      logger.mark(`[Class-Plugin] 生成的样式内容: ${styleText}`)
+      return styleText
     } catch (error) {
-      console.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
+      logger.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
       return this.getDefaultStyle()
     }
   }
@@ -183,6 +194,18 @@ export class Render {
       const tplPath = path.join(_path, 'plugins', 'class-plugin', 'resources', type + '.html')
       const layoutPath = path.join(_path, 'plugins', 'class-plugin', 'resources', 'common', 'layout.html')
       
+      if (!fs.existsSync(tplPath)) {
+        throw new Error(`模板文件不存在: ${tplPath}`)
+      }
+      if (!fs.existsSync(layoutPath)) {
+        throw new Error(`布局文件不存在: ${layoutPath}`)
+      }
+
+      const templateContent = fs.readFileSync(tplPath, 'utf8')
+      const layoutContent = fs.readFileSync(layoutPath, 'utf8')
+      logger.mark(`[Class-Plugin] 模板内容: ${templateContent}`)
+      logger.mark(`[Class-Plugin] 布局内容: ${layoutContent}`)
+
       return template(tplPath, {
         ...data,
         _layout: layoutPath,
@@ -190,7 +213,7 @@ export class Render {
         defaultLayout: layoutPath
       })
     } catch (error) {
-      console.error(`[Class-Plugin] 生成HTML失败: ${error}`)
+      logger.error(`[Class-Plugin] 生成HTML失败: ${error}`)
       throw error
     }
   }

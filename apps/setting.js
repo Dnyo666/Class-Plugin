@@ -11,11 +11,11 @@ export class Setting extends plugin {
             priority: 5000,
             rule: [
                 {
-                    reg: '^#?(开始配置|初始化)课表$',
+                    reg: '^#?(开始|初始化)?课表(配置|设置|初始化)?$',
                     fnc: 'startConfig'
                 },
                 {
-                    reg: '^#?设置开学日期\\s*(\\d{4}-\\d{1,2}-\\d{1,2})$',
+                    reg: '^#?设置开学日期\\s*(\\d{4}[-/]\\d{1,2}[-/]\\d{1,2})$',
                     fnc: 'setStartDate'
                 },
                 {
@@ -35,6 +35,7 @@ export class Setting extends plugin {
     }
 
     async startConfig(e) {
+        logger.mark(`[Class-Plugin] 触发初始化配置命令: ${e.msg}`)
         try {
             const config = Config.getUserConfig(e.user_id)
             const isInitialized = config?.base?.startDate && config?.base?.maxWeek
@@ -68,21 +69,22 @@ export class Setting extends plugin {
             }
             return true
         } catch (err) {
-            console.error(`[Class-Plugin] 初始化配置失败: ${err}`)
+            logger.error(`[Class-Plugin] 初始化配置失败: ${err}`)
             await e.reply('配置失败，请稍后重试')
             return false
         }
     }
 
     async setStartDate(e) {
+        logger.mark(`[Class-Plugin] 触发设置开学日期命令: ${e.msg}`)
         try {
-            const match = e.msg.match(/(\d{4}-\d{1,2}-\d{1,2})/)
+            const match = e.msg.match(/(\d{4}[-/]\d{1,2}[-/]\d{1,2})/)
             if (!match) {
                 await e.reply('日期格式错误，请使用 YYYY-MM-DD 格式，例如：2024-02-26')
                 return false
             }
 
-            const date = match[1]
+            const date = match[1].replace(/\//g, '-')
             if (!moment(date, 'YYYY-MM-DD', true).isValid()) {
                 await e.reply('日期格式错误，请使用 YYYY-MM-DD 格式，例如：2024-02-26')
                 return false
@@ -109,13 +111,14 @@ export class Setting extends plugin {
                 throw new Error('保存配置失败')
             }
         } catch (err) {
-            console.error(`[Class-Plugin] 设置开学日期失败: ${err}`)
+            logger.error(`[Class-Plugin] 设置开学日期失败: ${err}`)
             await e.reply('设置失败，请检查日期格式是否正确')
             return false
         }
     }
 
     async setMaxWeek(e) {
+        logger.mark(`[Class-Plugin] 触发设置学期周数命令: ${e.msg}`)
         try {
             const match = e.msg.match(/(\d+)/)
             if (!match) {
@@ -147,13 +150,14 @@ export class Setting extends plugin {
                 throw new Error('保存配置失败')
             }
         } catch (err) {
-            console.error(`[Class-Plugin] 设置学期周数失败: ${err}`)
+            logger.error(`[Class-Plugin] 设置学期周数失败: ${err}`)
             await e.reply('设置失败，请检查输入的周数是否正确')
             return false
         }
     }
 
     async toggleRemind(e) {
+        logger.mark(`[Class-Plugin] 触发提醒开关命令: ${e.msg}`)
         try {
             const enable = e.msg.includes('开启')
             const config = Config.getUserConfig(e.user_id)
@@ -174,13 +178,14 @@ export class Setting extends plugin {
                 throw new Error('保存配置失败')
             }
         } catch (err) {
-            console.error(`[Class-Plugin] 设置提醒状态失败: ${err}`)
+            logger.error(`[Class-Plugin] 设置提醒状态失败: ${err}`)
             await e.reply('设置失败，请稍后重试')
             return false
         }
     }
 
     async setRemindTime(e) {
+        logger.mark(`[Class-Plugin] 触发设置提醒时间命令: ${e.msg}`)
         try {
             const match = e.msg.match(/(\d+)/)
             if (!match) {
@@ -212,7 +217,7 @@ export class Setting extends plugin {
                 throw new Error('保存配置失败')
             }
         } catch (err) {
-            console.error(`[Class-Plugin] 设置提醒时间失败: ${err}`)
+            logger.error(`[Class-Plugin] 设置提醒时间失败: ${err}`)
             await e.reply('设置失败，请检查输入的时间是否正确')
             return false
         }
