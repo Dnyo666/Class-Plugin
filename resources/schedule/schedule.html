@@ -40,6 +40,12 @@
       font-size: 14px;
       line-height: 1.4;
       word-break: break-all;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .course-item:hover {
+      transform: scale(1.02);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .course-name {
       font-weight: bold;
@@ -60,28 +66,113 @@
       font-size: 12px;
       z-index: 1;
     }
+    .time-info {
+      color: #666;
+      font-size: 12px;
+      text-align: center;
+      padding: 5px 0;
+    }
+    .schedule-header.time-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 60px;
+    }
+    .course-detail {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 300px;
+    }
+    .course-detail.show {
+      display: block;
+    }
+    .detail-close {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #666;
+    }
+    .detail-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      padding-right: 20px;
+    }
+    .detail-item {
+      margin: 8px 0;
+      display: flex;
+    }
+    .detail-label {
+      width: 80px;
+      color: #666;
+    }
+    .detail-value {
+      flex: 1;
+    }
+    .current-week-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4CAF50;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+    .modal-overlay.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <div class="schedule-container">
+    <div class="current-week-indicator">
+      第 {{currentWeek}} 周
+    </div>
     <div class="schedule-grid">
       <div class="schedule-header">节次</div>
       {{#each weekDays}}
       <div class="schedule-header">{{this}}</div>
       {{/each}}
 
-      {{#each sections}}
-      <div class="schedule-header">{{this}}</div>
-      {{#each ../weekDays}}
-      <div class="schedule-cell">
-        {{#each (lookup ../../courseMap (concat @../index '_' @index))}}
+      {{#each sections as |section sectionIndex|}}
+      <div class="schedule-header time-column">
+        <div>{{section}}</div>
+        <div class="time-info">
+          {{lookup ../times sectionIndex "start"}} - {{lookup ../times sectionIndex "end"}}
+        </div>
+      </div>
+      {{#each ../weekDays as |day dayIndex|}}
+      <div class="schedule-cell" data-section="{{section}}" data-day="{{add dayIndex 1}}">
+        {{#each (lookup ../../courses dayIndex sectionIndex)}}
         <div class="course-item" style="background: {{randomColor @index ../../styles.courseColors}}">
           <div class="course-name">{{name}}</div>
           <div class="course-info">{{teacher}}</div>
           <div class="course-info">{{room}}</div>
         </div>
         {{/each}}
-        {{#if (isCurrentWeek @../index @index ../../currentWeek)}}
+        {{#if (isCurrentWeek dayIndex sectionIndex ../../currentWeek)}}
         <div class="current-week">本周</div>
         {{/if}}
       </div>
@@ -89,5 +180,71 @@
       {{/each}}
     </div>
   </div>
+
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="course-detail" id="courseDetail">
+    <div class="detail-close" onclick="closeDetail()">×</div>
+    <div class="detail-title"></div>
+    <div class="detail-item">
+      <div class="detail-label">教师</div>
+      <div class="detail-value detail-teacher"></div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">教室</div>
+      <div class="detail-value detail-room"></div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">时间</div>
+      <div class="detail-value detail-time"></div>
+    </div>
+    <div class="detail-item">
+      <div class="detail-label">周数</div>
+      <div class="detail-value detail-weeks"></div>
+    </div>
+  </div>
+
+  <script>
+    function showDetail(course) {
+      const detail = document.getElementById('courseDetail');
+      const overlay = document.getElementById('modalOverlay');
+      
+      detail.querySelector('.detail-title').textContent = course.name;
+      detail.querySelector('.detail-teacher').textContent = course.teacher;
+      detail.querySelector('.detail-room').textContent = course.room;
+      detail.querySelector('.detail-time').textContent = 
+        `${course.startTime} - ${course.endTime}`;
+      detail.querySelector('.detail-weeks').textContent = 
+        `第${course.weeks.join(',')}周`;
+      
+      detail.classList.add('show');
+      overlay.classList.add('show');
+    }
+
+    function closeDetail() {
+      const detail = document.getElementById('courseDetail');
+      const overlay = document.getElementById('modalOverlay');
+      
+      detail.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+
+    // 为所有课程添加点击事件
+    document.querySelectorAll('.course-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const course = {
+          name: item.querySelector('.course-name').textContent,
+          teacher: item.querySelector('.course-info:nth-child(2)').textContent,
+          room: item.querySelector('.course-info:nth-child(3)').textContent,
+          startTime: item.dataset.startTime,
+          endTime: item.dataset.endTime,
+          weeks: JSON.parse(item.dataset.weeks)
+        };
+        showDetail(course);
+      });
+    });
+
+    // 点击遮罩层关闭详情
+    document.getElementById('modalOverlay').addEventListener('click', closeDetail);
+  </script>
 </body>
 </html> 
