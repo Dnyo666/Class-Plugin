@@ -1,5 +1,4 @@
 import path from 'path'
-import fs from 'fs'
 
 const _path = process.cwd().replace(/\\/g, '/')
 
@@ -13,6 +12,7 @@ const pluginResources = path.join(pluginRoot, 'resources')
 const serverResources = path.join(pluginResources, 'server')
 
 // 确保服务器资源目录存在
+import fs from 'fs'
 if (!fs.existsSync(serverResources)) {
     fs.mkdirSync(serverResources, { recursive: true })
 }

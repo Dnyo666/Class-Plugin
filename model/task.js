@@ -10,7 +10,9 @@ export class Task {
   }
 
   init() {
-    if (!schedule?.scheduleJob) {
+    try {
+      schedule = require('node-schedule')
+    } catch (err) {
       logger.mark('[Class-Plugin] node-schedule 模块加载失败')
       return
     }
@@ -66,7 +68,7 @@ export class Task {
                course.weeks.includes(week)
       } catch (err) {
         logger.mark(`[Class-Plugin] 过滤今日课程失败: ${err}`)
-        return false
+        return []
       }
     })
   }

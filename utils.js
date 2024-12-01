@@ -27,7 +27,7 @@ export default class Utils {
   static getCurrentWeek(startDate) {
     if (!startDate || !moment(startDate).isValid()) {
       logger.mark('[Class-Plugin] 无效的开学日期')
-      return 1
+      return false
     }
 
     const start = moment(startDate).startOf('day')

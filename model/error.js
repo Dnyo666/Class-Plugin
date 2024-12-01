@@ -12,4 +12,4 @@ export function handleError(error) {
     logger.mark(`[Class-Plugin] ${error}`)
     return '发生未知错误'
   }
-} 
+}
