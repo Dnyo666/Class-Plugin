@@ -3,138 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    body {
-      margin: 0;
+    .schedule-container {
+      width: 1000px;
       padding: 20px;
-      font-family: "Microsoft YaHei", sans-serif;
-      background: #f5f6fa;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    #container {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 20px;
-      max-width: 1000px;
-      margin: 0 auto;
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(7, 1fr);
+      gap: 1px;
+      background: #eee;
+      border: 1px solid #eee;
     }
-
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      color: #2c3e50;
-      margin: 0;
-    }
-
-    .header p {
-      color: #7f8c8d;
-      margin: 8px 0 0;
-    }
-
-    .schedule-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 8px;
-      table-layout: fixed;
-    }
-
-    .schedule-table th {
-      background: #3498db;
-      color: white;
-      padding: 12px;
-      font-weight: normal;
-      border-radius: 6px;
-    }
-
-    .schedule-table td {
-      height: 100px;
-      vertical-align: top;
+    .schedule-header {
       background: #f8f9fa;
-      border-radius: 6px;
-      padding: 8px;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .schedule-cell {
+      background: #fff;
+      padding: 10px;
+      min-height: 120px;
       position: relative;
     }
-
     .course-item {
-      border-radius: {{styles.defaultStyle.borderRadius}};
-      padding: {{styles.defaultStyle.padding}};
-      font-size: {{styles.defaultStyle.fontSize}};
-      line-height: {{styles.defaultStyle.lineHeight}};
-      box-shadow: {{styles.defaultStyle.boxShadow}};
-      margin-bottom: 4px;
-      overflow: hidden;
-      position: relative;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-all;
     }
-
-    {{each courses course idx}}
-    .course-{{course.id}} {
-      background: {{styles.courseColors[idx % styles.courseColors.length]}};
-    }
-    {{/each}}
-
     .course-name {
       font-weight: bold;
       margin-bottom: 4px;
     }
-
     .course-info {
       font-size: 12px;
-      color: rgba(0,0,0,0.6);
+      color: #666;
     }
-
     .current-week {
       position: absolute;
       top: 4px;
       right: 4px;
-      background: #e74c3c;
-      color: white;
+      background: #ff4444;
+      color: #fff;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 10px;
       font-size: 12px;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <div class="header">
-      <h1>课程表</h1>
-      <p>第{{currentWeek}}周</p>
-    </div>
-    <table class="schedule-table">
-      <tr>
-        <th>节次</th>
-        {{each weekDays day}}
-        <th>{{day}}</th>
-        {{/each}}
-      </tr>
-      {{each sections section sIndex}}
-      <tr>
-        <td>{{section}}</td>
-        {{each weekDays day dIndex}}
-        <td>
-          {{each courses course}}
-          {{if course.weekDay === dIndex+1 && course.section === section}}
-          <div class="course-item course-{{course.id}}">
-            <div class="course-name">{{course.name}}</div>
-            <div class="course-info">
-              {{course.teacher}}<br>
-              {{course.location}}
-            </div>
-            {{if course.weeks.includes(currentWeek)}}
-            <span class="current-week">本周</span>
-            {{/if}}
-          </div>
-          {{/if}}
-          {{/each}}
-        </td>
-        {{/each}}
-      </tr>
+  <div class="schedule-container">
+    <div class="schedule-grid">
+      <div class="schedule-header">节次</div>
+      {{#each weekDays}}
+      <div class="schedule-header">{{this}}</div>
       {{/each}}
-    </table>
+
+      {{#each sections}}
+      <div class="schedule-header">{{this}}</div>
+      {{#each ../weekDays}}
+      <div class="schedule-cell">
+        {{#each (lookup ../../courseMap (concat @../index '_' @index))}}
+        <div class="course-item" style="background: {{randomColor @index ../../styles.courseColors}}">
+          <div class="course-name">{{name}}</div>
+          <div class="course-info">{{teacher}}</div>
+          <div class="course-info">{{room}}</div>
+        </div>
+        {{/each}}
+        {{#if (isCurrentWeek @../index @index ../../currentWeek)}}
+        <div class="current-week">本周</div>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/each}}
+    </div>
   </div>
 </body>
 </html> 

@@ -133,8 +133,49 @@ class Server {
         this.app.post('/api/course/import', this.authMiddleware.bind(this), (req, res) => {
             try {
                 const { courseData } = req.body;
-                // TODO: 实现课表导入逻辑
-                res.json({ code: 200, msg: '导入成功' });
+                const userData = Config.getUserConfig(req.userId);
+                
+                // 解析课表数据
+                let courses;
+                try {
+                    const data = JSON.parse(courseData);
+                    courses = data.courses;
+                } catch (e) {
+                    return res.json({ code: 400, msg: '课表数据格式错误' });
+                }
+
+                if (!Array.isArray(courses)) {
+                    return res.json({ code: 400, msg: '课表数据格式错误' });
+                }
+
+                // 验证每个课程的数据
+                courses = courses.filter(course => {
+                    return course.name && 
+                           course.teacher &&
+                           course.room &&
+                           Number.isInteger(course.day) && course.day >= 1 && course.day <= 7 &&
+                           Number.isInteger(course.startNode) && course.startNode >= 1 && course.startNode <= 9 &&
+                           Number.isInteger(course.endNode) && course.endNode >= 2 && course.endNode <= 10 &&
+                           course.endNode > course.startNode &&
+                           Number.isInteger(course.startWeek) && course.startWeek >= 1 &&
+                           Number.isInteger(course.endWeek) && course.endWeek >= course.startWeek &&
+                           Number.isInteger(course.type) && course.type >= 0 && course.type <= 2;
+                });
+
+                // 添加课程ID
+                courses.forEach(course => {
+                    course.id = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                });
+
+                // 保存课程数据
+                if (!userData.courses) userData.courses = [];
+                userData.courses.push(...courses);
+                
+                if (Config.setUserConfig(req.userId, userData)) {
+                    res.json({ code: 200, msg: `成功导入 ${courses.length} 门课程` });
+                } else {
+                    res.json({ code: 500, msg: '保存课程数据失败' });
+                }
             } catch (error) {
                 console.error(`导入课表失败：\n${error}`);
                 res.json({ code: 500, msg: '导入课表失败' });

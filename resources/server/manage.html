@@ -233,7 +233,7 @@
                 </div>
                 <div class="form-group">
                     <label>周数</label>
-                    <input type="number" name="startWeek" placeholder="开��" required>
+                    <input type="number" name="startWeek" placeholder="开" required>
                     <input type="number" name="endWeek" placeholder="结束周" required>
                     <select name="type">
                         <option value="0">每周</option>
@@ -364,6 +364,14 @@
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             
+            // 转换数据类型
+            data.day = parseInt(data.day);
+            data.startNode = parseInt(data.startNode);
+            data.endNode = parseInt(data.endNode);
+            data.startWeek = parseInt(data.startWeek);
+            data.endWeek = parseInt(data.endWeek);
+            data.type = parseInt(data.type);
+
             const res = await request('/api/course', {
                 method: 'POST',
                 body: JSON.stringify(data)
@@ -371,7 +379,9 @@
 
             if (res?.code === 200) {
                 hideAddCourse();
+                e.target.reset();
                 loadCourses();
+                alert('添加成功');
             } else {
                 alert(res?.msg || '添加失败');
             }
@@ -383,16 +393,18 @@
             if (!checkLogin()) return;
 
             const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
+            const courseData = formData.get('courseData');
             
             const res = await request('/api/course/import', {
                 method: 'POST',
-                body: JSON.stringify(data)
+                body: JSON.stringify({ courseData })
             });
 
             if (res?.code === 200) {
                 hideImportCourse();
+                e.target.reset();
                 loadCourses();
+                alert(res.msg);
             } else {
                 alert(res?.msg || '导入失败');
             }
