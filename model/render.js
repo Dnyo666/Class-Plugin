@@ -106,18 +106,47 @@ export class Render {
         logger.mark(`[Class-Plugin] 生成的HTML内容: ${html}`)
 
         await page.setContent(html)
-        const body = await page.$('#container')
-        if (!body) {
+        
+        // 等待页面加载完成
+        await page.waitForSelector('#container', { timeout: 5000 })
+        
+        // 获取实际内容高度
+        const bodyHandle = await page.$('body')
+        const { height } = await bodyHandle.boundingBox()
+        await bodyHandle.dispose()
+        
+        // 调整视口高度
+        await page.setViewport({ width: 1280, height: Math.ceil(height) })
+        
+        // 重新获取容器并截图
+        const container = await page.$('#container')
+        if (!container) {
           throw new Error('找不到容器元素')
         }
 
-        const buff = await body.screenshot({
+        // 等待样式加载
+        await page.waitForTimeout(1000)
+
+        const buff = await container.screenshot({
           type: 'png',
-          omitBackground: true
+          omitBackground: true,
+          encoding: 'binary'
         })
 
         const tmpPath = path.join(_path, 'plugins', 'class-plugin', 'temp', `help_${Date.now()}.png`)
         fs.writeFileSync(tmpPath, buff)
+
+        // 验证文件是否成功生成
+        if (!fs.existsSync(tmpPath)) {
+          throw new Error('图片文件未生成')
+        }
+
+        const fileSize = fs.statSync(tmpPath).size
+        if (fileSize === 0) {
+          throw new Error('生成的图片文件为空')
+        }
+
+        logger.mark(`[Class-Plugin] 成功生成帮助图片: ${tmpPath}`)
         return tmpPath
       } catch (error) {
         logger.error(`[Class-Plugin] 帮助渲染失败: ${error}`)
@@ -134,7 +163,40 @@ export class Render {
         .map(([key, value]) => `.${key} { ${value} }`)
         .join('\n')
       logger.mark(`[Class-Plugin] 生成的样式内容: ${styleText}`)
-      return styleText
+      return `
+        ${styleText}
+        body {
+          background: transparent;
+        }
+        #container {
+          margin: 20px;
+          padding: 20px;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .help-table {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin: 15px 0;
+        }
+        .tr {
+          display: flex;
+          gap: 10px;
+        }
+        .td {
+          flex: 1;
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 10px;
+          transition: all 0.3s ease;
+        }
+        .td:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+      `
     } catch (error) {
       logger.error(`[Class-Plugin] 获取样式配置失败: ${error}`)
       return this.getDefaultStyle()
