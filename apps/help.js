@@ -145,7 +145,7 @@ export class Help extends plugin {
             }
 
             // 发送帮助图片
-            await this.reply(await this.e.segment.image(imagePath));
+            await this.reply(await this.e.segment.image(`file:///${imagePath}`));
 
             // 删除临时文件
             setTimeout(() => {

@@ -12,6 +12,20 @@ export class Render {
     this.isInitializing = false
     this.maxRetries = 3
     this.retryDelay = 1000
+    this.initDirs()
+  }
+
+  initDirs() {
+    const dirs = [
+      path.join(_path, 'plugins', 'class-plugin', 'temp'),
+      path.join(_path, 'plugins', 'class-plugin', 'data')
+    ]
+    
+    for (const dir of dirs) {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+      }
+    }
   }
 
   async initBrowser() {
@@ -105,37 +119,6 @@ export class Render {
     })
   }
 
-  async courseTable(courses, currentWeek) {
-    return this.renderWithRetry(async () => {
-      const browser = await this.initBrowser()
-      const page = await browser.newPage()
-      
-      try {
-        await page.setViewport({ width: 1000, height: 800 })
-        const html = await this.getHtml('schedule/index', {
-          courses,
-          currentWeek,
-          weekDays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-          sections: Array(8).fill(0).map((_, i) => `第${i + 1}节`),
-          styles: this.getCourseStyles()
-        })
-
-        await page.setContent(html)
-        const body = await page.$('#container')
-        const buff = await body.screenshot({
-          type: 'png',
-          omitBackground: true
-        })
-
-        const tmpPath = path.join(_path, 'temp', `schedule_${Date.now()}.png`)
-        fs.writeFileSync(tmpPath, buff)
-        return tmpPath
-      } finally {
-        await page.close()
-      }
-    })
-  }
-
   async getStyle() {
     try {
       return Object.entries(style)
@@ -193,22 +176,6 @@ export class Render {
         margin-top: 5px;
       }
     `
-  }
-
-  getCourseStyles() {
-    return {
-      courseColors: [
-        '#FF9999', '#99FF99', '#9999FF', 
-        '#FFFF99', '#FF99FF', '#99FFFF'
-      ],
-      defaultStyle: {
-        borderRadius: '8px',
-        padding: '8px',
-        fontSize: '14px',
-        lineHeight: '1.4',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }
-    }
   }
 
   async getHtml(type, data) {
