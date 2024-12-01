@@ -188,4 +188,4 @@ server.start().catch(err => {
     logger.error(`[Class-Plugin] 服务器启动失败: ${err}`)
 })
 
-export { server } 
+export { Server, server } 
