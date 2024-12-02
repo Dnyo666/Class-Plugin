@@ -28,7 +28,7 @@ class Server {
       }
 
       // 返回登录页面
-      res.send([
+      const loginPage = [
         '<!DOCTYPE html>',
         '<html>',
         '<head>',
@@ -131,7 +131,7 @@ class Server {
         '          window.location.href = data.data.redirectUrl;',
         '        } else {',
         '          document.getElementById("error").style.display = "block";',
-        '          document.getElementById("error").textContent = ' + (data.msg || '登录失败') + ';'
+        '          document.getElementById("error").textContent = data.msg || "登录失败";',
         '        }',
         '      } catch (err) {',
         '        document.getElementById("error").style.display = "block";',
@@ -141,7 +141,9 @@ class Server {
         '  </script>',
         '</body>',
         '</html>'
-      ].join('\n'))
+      ].join('\n')
+
+      res.send(loginPage)
     })
 
     // 认证接口
