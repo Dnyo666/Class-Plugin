@@ -179,7 +179,7 @@ export class Config {
       const data = fs.readFileSync(filePath, 'utf8')
       return this.validateConfig(JSON.parse(data))
     } catch (err) {
-      logger.mark(`[Class-Plugin] 读取用户配置失败: ${err}`)
+      logger.error(`[Class-Plugin] 读取用户配置失败: ${err}`)
       return this.defaultConfig
     }
   }
@@ -189,43 +189,10 @@ export class Config {
     try {
       const filePath = path.join(this.dataDir, `${userId}.json`)
       const validConfig = this.validateConfig(config)
-      
-      // 确保目录存在
-      if (!fs.existsSync(this.dataDir)) {
-        fs.mkdirSync(this.dataDir, { recursive: true })
-      }
-
-      // 如果是初始化配置，检查是否有临时数据需要迁移
-      if (!config.base?.startDate || !config.base?.maxWeek) {
-        const tempPath = path.join(this.tempDir, `${userId}.json`)
-        if (fs.existsSync(tempPath)) {
-          try {
-            const tempData = JSON.parse(fs.readFileSync(tempPath, 'utf8'))
-            if (tempData.courses?.length) {
-              validConfig.courses = tempData.courses.map(course => this.validateCourse(course))
-            }
-            fs.unlinkSync(tempPath)
-          } catch (err) {
-            logger.mark(`[Class-Plugin] 迁移临时数据失败: ${err}`)
-          }
-        }
-      }
-
-      // 备份旧配置
-      const backupDir = path.join(this.dataDir, 'backup')
-      if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir, { recursive: true })
-      }
-      if (fs.existsSync(filePath)) {
-        const backupPath = path.join(backupDir, `${userId}_${moment().format('YYYYMMDD_HHmmss')}.json`)
-        fs.copyFileSync(filePath, backupPath)
-      }
-
-      // 保存新配置
       fs.writeFileSync(filePath, JSON.stringify(validConfig, null, 2))
       return true
     } catch (err) {
-      logger.mark(`[Class-Plugin] 保存用户配置失败: ${err}`)
+      logger.error(`[Class-Plugin] 保存用户配置失败: ${err}`)
       return false
     }
   }

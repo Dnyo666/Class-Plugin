@@ -177,7 +177,7 @@ class Server {
           }
         })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 认证失败: ${err}`)
+        logger.mark('[Class-Plugin] 认证失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -457,7 +457,7 @@ class Server {
               })
               event.target.classList.add('active')
               
-              // 切��相应标签刷��数据
+              // 切换相应标签刷数据
               if (tabId === 'schedule') {
                 loadSchedule()
               } else if (tabId === 'courseManage') {
@@ -654,7 +654,7 @@ class Server {
         }
         res.json({ code: 0, data: config })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 获取配置失败: ${err}`)
+        logger.mark('[Class-Plugin] 获取配置失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -682,7 +682,7 @@ class Server {
           res.json({ code: 500, msg: '保存失败' })
         }
       } catch (err) {
-        logger.mark(`[Class-Plugin] 保存配置失败: ${err}`)
+        logger.mark('[Class-Plugin] 保存配置失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -713,7 +713,7 @@ class Server {
           res.json({ code: 500, msg: '导入失败' })
         }
       } catch (err) {
-        logger.mark(`[Class-Plugin] 导入课程失败: ${err}`)
+        logger.mark('[Class-Plugin] 导入课程失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -745,7 +745,7 @@ class Server {
           }
         })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 获取当前周失败: ${err}`)
+        logger.mark('[Class-Plugin] 获取当前周失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -837,7 +837,7 @@ class Server {
           res.json({ code: 500, msg: '保存失败' })
         }
       } catch (err) {
-        logger.mark(`[Class-Plugin] 添加课程失败: ${err}`)
+        logger.mark('[Class-Plugin] 添加课程失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -861,7 +861,7 @@ class Server {
           res.json({ code: 500, msg: '删除失败' })
         }
       } catch (err) {
-        logger.mark(`[Class-Plugin] 删除课程失败: ${err}`)
+        logger.mark('[Class-Plugin] 删除课程失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -891,7 +891,7 @@ class Server {
           res.json({ code: 500, msg: '修改失败' })
         }
       } catch (err) {
-        logger.mark(`[Class-Plugin] 修改课程失败: ${err}`)
+        logger.mark('[Class-Plugin] 修改课程失败: ' + err)
         res.json({ code: 500, msg: '服务器错误' })
       }
     })
@@ -901,11 +901,11 @@ class Server {
     return new Promise((resolve, reject) => {
       try {
         this.server = this.app.listen(this.port, () => {
-          logger.mark(`[Class-Plugin] 服务器启动成功，端口: ${this.port}`)
+          logger.mark('[Class-Plugin] 服务器启动成功，端口: ' + this.port)
           resolve()
         })
       } catch (err) {
-        logger.mark(`[Class-Plugin] 服务器启动失败: ${err}`)
+        logger.mark('[Class-Plugin] 服务器启动失败: ' + err)
         reject(err)
       }
     })
@@ -941,7 +941,7 @@ const server = new Server()
 
 // 初始化服务器
 server.start().catch(err => {
-    logger.error(`[Class-Plugin] 服务器启动失败: ${err}`)
+    logger.error('[Class-Plugin] 服务器启动失败: ' + err)
 })
 
 export { server } 
