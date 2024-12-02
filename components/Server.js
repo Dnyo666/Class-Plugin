@@ -457,7 +457,7 @@ class Server {
               })
               event.target.classList.add('active')
               
-              // 切��到相应标签��刷新数据
+              // 切��相应标签刷��数据
               if (tabId === 'schedule') {
                 loadSchedule()
               } else if (tabId === 'courseManage') {
@@ -480,7 +480,7 @@ class Server {
               }
 
               try {
-                const response = await fetch(\`/api/course/\${userId}\`, {
+                const response = await fetch('/api/course/' + userId, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
@@ -520,7 +520,7 @@ class Server {
               }
 
               try {
-                const response = await fetch(\`/api/config/\${userId}\`, {
+                const response = await fetch('/api/config/' + userId, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
@@ -548,7 +548,7 @@ class Server {
               if (!userId) return
 
               try {
-                const response = await fetch(\`/api/config/\${userId}\`)
+                const response = await fetch('/api/config/' + userId)
                 const data = await response.json()
                 if (data.code === 0) {
                   document.getElementById('startDate').value = data.data.base?.startDate || ''
@@ -619,7 +619,7 @@ class Server {
               if (!userId) return
 
               try {
-                const response = await fetch(`/api/course/${userId}/${courseId}`, {
+                const response = await fetch('/api/course/' + userId + '/' + courseId, {
                   method: 'DELETE'
                 })
                 
