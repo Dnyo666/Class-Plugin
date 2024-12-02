@@ -131,7 +131,7 @@ class Server {
         '          window.location.href = data.data.redirectUrl;',
         '        } else {',
         '          document.getElementById("error").style.display = "block";',
-        '          document.getElementById("error").textContent = data.msg || "登录失败";',
+        '          document.getElementById("error").textContent = ' + (data.msg || '登录失败') + ';'
         '        }',
         '      } catch (err) {',
         '        document.getElementById("error").style.display = "block";',
